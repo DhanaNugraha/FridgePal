@@ -145,7 +145,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- Recipe dataset provided by [Kaggle](https://www.kaggle.com/)
+- Recipe dataset provided by [Kaggle](https://www.kaggle.com/datasets/wilmerarltstrmberg/recipe-dataset-over-2m)
 - Icons by [Font Awesome](https://fontawesome.com/)
 
 ---

@@ -49,59 +49,122 @@ So now:
 
 ---
 
-## 🔹 Step 3: Query all chefs
+## 🔹 Step 3: Query all chefs with Hybrid Scoring
 
-When a user gives ingredients, you ask **all chefs** for their best matches.
+When a user provides ingredients, each chef calculates both TF-IDF similarity and ingredient overlap, then combines them for a more balanced recommendation.
 
 ```python
 from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
-def query_chefs(user_ingredients, top_n=3):
+def normalize_ingredient(ing: str) -> str:
+    """Normalize ingredient names for better matching."""
+    return ' '.join(ing.lower().strip().split())
+
+def calculate_overlap(query_ingredients, recipe_ingredients):
+    """Calculate the ingredient overlap score between query and recipe."""
+    query_set = {normalize_ingredient(ing) for ing in query_ingredients}
+    recipe_set = {normalize_ingredient(ing) for ing in recipe_ingredients.split(',')}
+    
+    if not recipe_set:
+        return 0.0
+    return len(query_set & recipe_set) / len(recipe_set)
+
+def query_chefs(user_ingredients, top_n=3, cosine_weight=0.5):
+    """
+    Get recipe recommendations using hybrid scoring.
+    
+    Args:
+        user_ingredients: List of available ingredients
+        top_n: Number of recommendations per chef
+        cosine_weight: Weight for TF-IDF vs. overlap (0.0 to 1.0)
+    """
     results = []
     user_query = " ".join(user_ingredients)
 
     for i, chef_df in enumerate(chefs_data):
+        # TF-IDF similarity
         user_vec = vectorizers[i].transform([user_query])
-        scores = cosine_similarity(user_vec, matrices[i]).flatten()
+        cosine_scores = cosine_similarity(user_vec, matrices[i]).flatten()
         
-        top_idx = scores.argsort()[-top_n:][::-1]
+        # Normalize cosine scores
+        if len(cosine_scores) > 1:
+            cosine_scores = (cosine_scores - cosine_scores.min()) / \
+                          (cosine_scores.max() - cosine_scores.min() + 1e-9)
+        
+        # Calculate overlap scores
+        overlap_scores = np.array([
+            calculate_overlap(user_ingredients, recipe["ingredients"])
+            for _, recipe in chef_df.iterrows()
+        ])
+        
+        # Combine scores
+        hybrid_scores = (cosine_weight * cosine_scores) + \
+                       ((1 - cosine_weight) * overlap_scores)
+        
+        # Get top N recommendations
+        top_idx = hybrid_scores.argsort()[-top_n:][::-1]
         
         for idx in top_idx:
             recipe = chef_df.iloc[idx]
             results.append({
                 "chef": f"Chef {i+1}",
                 "title": recipe["title"],
-                "score": float(scores[idx]),
+                "score": float(hybrid_scores[idx]),
+                "score_components": {
+                    "cosine_score": float(cosine_scores[idx]),
+                    "overlap_score": float(overlap_scores[idx]),
+                    "cosine_weight": cosine_weight,
+                    "overlap_weight": 1 - cosine_weight
+                },
                 "required_ingredients": recipe["ingredients"].split(","),
                 "instructions": recipe["instructions"].split(". ")
             })
     
     # Merge & sort results from all chefs
-    results = sorted(results, key=lambda x: x["score"], reverse=True)
+    results.sort(key=lambda x: x["score"], reverse=True)
     return results[:top_n * len(chefs_data)]
 ```
 
 ---
 
-## 🔹 Step 4: Example usage
+## 🔹 Step 4: Example Usage with Hybrid Scoring
 
 ```python
-user_input = ["chicken", "tomato", "onion"]
+user_input = ["chicken", "tomato", "onion", "garlic"]
 
+# Get recommendations with default 50/50 weighting
 recommendations = query_chefs(user_input, top_n=2)
 
-for rec in recommendations:
-    print(f"{rec['chef']} suggests: {rec['title']} (score={rec['score']:.2f})")
+# Or adjust the balance (e.g., 70% TF-IDF, 30% overlap)
+# recommendations = query_chefs(user_input, top_n=2, cosine_weight=0.7)
+
+for i, rec in enumerate(recommendations, 1):
+    scores = rec['score_components']
+    print(f"{i}. {rec['chef']} suggests: {rec['title']}")
+    print(f"   Final Score: {rec['score']:.2f}")
+    print(f"   TF-IDF: {scores['cosine_score']:.2f} (weight: {scores['cosine_weight']*100:.0f}%)")
+    print(f"   Overlap: {scores['overlap_score']:.2f} (weight: {scores['overlap_weight']*100:.0f}%)")
+    print()
 ```
 
-Output might look like:
+Example output:
 
 ```
-Chef 2 suggests: Tomato Chicken Curry (score=0.87)
-Chef 5 suggests: Chicken Stew with Onions (score=0.83)
-Chef 1 suggests: Tomato Pasta with Veggies (score=0.75)
-Chef 3 suggests: Grilled Onion Chicken (score=0.74)
-...
+1. Chef 2 (Asian) suggests: Tomato Chicken Curry
+   Final Score: 0.85
+   TF-IDF: 0.70 (weight: 50%)
+   Overlap: 1.00 (weight: 50%)
+
+2. Chef 5 (Dessert) suggests: Chicken Stew with Onions
+   Final Score: 0.82
+   TF-IDF: 0.65 (weight: 50%)
+   Overlap: 0.99 (weight: 50%)
+
+3. Chef 1 (Italian) suggests: Tomato Pasta with Veggies
+   Final Score: 0.78
+   TF-IDF: 0.75 (weight: 50%)
+   Overlap: 0.81 (weight: 50%)
 ```
 
 ---
@@ -125,9 +188,11 @@ Then in the UI:
 ## ⚡ Summary
 
 ✔️ You split the dataset → train multiple lightweight models.
-✔️ Each model gives **its own picks**.
+✔️ Each model uses **hybrid scoring** (TF-IDF + ingredient overlap) for better recommendations.
+✔️ Customizable weights let you balance between semantic similarity and ingredient matching.
 ✔️ You merge + rerank results → feels like a **panel of chefs** helping the user.
 ✔️ Keeps memory low (each model handles a slice, not all 2M recipes).
+✔️ Detailed score breakdown helps understand why each recipe was recommended.
 
 ---
 

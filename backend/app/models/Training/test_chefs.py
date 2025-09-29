@@ -6,6 +6,7 @@ from .chef import Chef
 
 # python -m app.models.Training.test_chefs
 
+
 def load_chefs(models_dir: str = "models") -> List[Chef]:
     """
     Load all chef models from the specified directory.
@@ -60,28 +61,67 @@ def get_recommendations(
     return all_recommendations
 
 
-def print_recommendations(recommendations: List[Dict[str, Any]], max_results: int = 10):
-    """Print recipe recommendations in a readable format."""
-    print("\n" + "=" * 80)
-    print(f"RECIPE RECOMMENDATIONS ({len(recommendations)} total)")
-    print("=" * 80)
+def print_recommendations(recommendations: List[Dict[str, Any]], max_recipes: int = 10):
+    """Print recipe recommendations in a readable format.
+    
+    Args:
+        recommendations: List of recipe recommendations
+        max_recipes: Maximum number of recipes to display (top N)
+    """
+    print("\n" + "=" * 100)
+    print(f"TOP {min(max_recipes, len(recommendations))} RECIPE RECOMMENDATIONS (out of {len(recommendations)} total)")
+    print("=" * 100)
 
-    for i, recipe in enumerate(recommendations[:max_results], 1):
+    for i, recipe in enumerate(recommendations[:max_recipes], 1):
         print(f"\n{i}. {recipe['title']}")
         print(f"   By: {recipe['chef']}")
-        print(f"   Match Score: {recipe['similarity_score']:.2f}")
         print(f"   Cuisine: {recipe.get('cuisine', 'N/A')}")
+        
+        # Display score components if available
+        if 'score_components' in recipe:
+            scores = recipe['score_components']
+            print(f"   \n   SCORE BREAKDOWN:")
+            print(f"   {'Final Score:':<20} {recipe['similarity_score'] * 100:.2f}%")
+            print(f"   {'TF-IDF Score:':<20} {scores['cosine_score'] * 100:.2f}% (weight: {scores['cosine_weight'] * 100:.0f}%)")
+            print(f"   {'Overlap Score:':<20} {scores['overlap_score'] * 100:.2f}% (weight: {scores['overlap_weight'] * 100:.0f}%)")
+        else:
+            print(f"   Match Score: {recipe['similarity_score'] * 100:.2f}%")
 
-        # Print a preview of the ingredients
-        ingredients = (
-            recipe["ingredients"][:100] + "..."
-            if len(recipe["ingredients"]) > 100
-            else recipe["ingredients"]
-        )
-        print(f"   Ingredients: {ingredients}")
+        # Format ingredients for better readability
+        if isinstance(recipe["ingredients"], str):
+            ingredients = recipe["ingredients"]
+        elif isinstance(recipe["ingredients"], list):
+            ingredients = ", ".join(str(ing).strip() for ing in recipe["ingredients"])
+        else:
+            ingredients = str(recipe["ingredients"])
 
-    if len(recommendations) > max_results:
-        print(f"\n... and {len(recommendations) - max_results} more recommendations")
+        # Limit the length of ingredients preview
+        if len(ingredients) > 200:
+            ingredients = ingredients[:200] + "..."
+
+        print(f"\n   INGREDIENTS: {ingredients}")
+        
+        # Show instructions for top 3 recipes
+        if i <= 3 and 'instructions' in recipe and recipe['instructions']:
+            print("\n   INSTRUCTIONS:")
+            instructions = recipe['instructions']
+            
+            # Clean and format instructions
+            if isinstance(instructions, str):
+                # Split into steps if they're in a single string
+                steps = [s.strip() for s in instructions.split('\n') if s.strip()]
+                if len(steps) == 1 and ('. ' in steps[0] or ';' in steps[0]):
+                    # If it's one long string with periods or semicolons, split into sentences
+                    import re
+                    steps = [s.strip() for s in re.split(r'(?<=[.;])\s+', steps[0]) if s.strip()]
+                
+                # Print each step with numbering
+                for j, step in enumerate(steps, 1):
+                    print(f"   {j}. {step}")
+            else:
+                print(f"   {instructions}")
+
+        print("-" * 100)
 
 
 def main():
@@ -90,15 +130,28 @@ def main():
         chefs = load_chefs("app/models")
 
         # Example query
-        test_ingredients = ["chicken", "rice", "tomato"]
+        test_ingredients = [
+            "chicken",
+            "rice",
+            "tomato",
+            "potato",
+            "onion",
+            "garlic",
+            "ginger",
+            "lemon",
+            "salt",
+            "pepper",
+            "oil",
+            "curry",
+        ]
 
         print(f"\nSearching for recipes with: {', '.join(test_ingredients)}")
 
-        # Get recommendations
-        recommendations = get_recommendations(chefs, test_ingredients, top_n=3)
+        # Get more recommendations (increased top_n to get more results)
+        recommendations = get_recommendations(chefs, test_ingredients, top_n=10)
 
-        # Print results
-        print_recommendations(recommendations, max_results=5)
+        # Print all results with improved formatting
+        print_recommendations(recommendations)
 
     except Exception as e:
         print(f"\nAn error occurred: {str(e)}")

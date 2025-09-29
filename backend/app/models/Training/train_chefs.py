@@ -130,7 +130,7 @@ def load_and_preprocess_data(filepath: str, sample_size: int = 1000) -> pd.DataF
     # If we get here, all attempts failed
     raise ValueError("Could not read the CSV file with any of the supported encodings")
 
-def create_chefs(df: pd.DataFrame, num_chefs: int = 5, recipes_per_chef: int = 50000) -> List[Chef]:
+def create_chefs(df: pd.DataFrame, num_chefs: int = 5, recipes_per_chef: int = 1) -> List[Chef]:
     """
     Create and train multiple chef models on different subsets of the data.
     
@@ -181,7 +181,7 @@ def create_chefs(df: pd.DataFrame, num_chefs: int = 5, recipes_per_chef: int = 5
     
     return chefs
 
-def save_chefs(chefs: List[Chef], output_dir: str = "models"):
+def save_chefs(chefs: List[Chef], output_dir: str = "models", recipes_per_chef: int = 1):
     """
     Save trained chef models to disk.
     
@@ -195,8 +195,8 @@ def save_chefs(chefs: List[Chef], output_dir: str = "models"):
     # Save each chef's model
     for i, chef in enumerate(chefs):
         # Create a unique filename with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{output_dir}/chef_{i+1}_{chef.name.lower().replace(' ', '_')}_{timestamp}.joblib"
+        timestamp = datetime.now().strftime("%d%m%Y")
+        filename = f"{output_dir}/{chef.name.lower().replace(' ', '_')}_{recipes_per_chef}_recipes_{timestamp}.joblib"
         
         # Save the chef object
         joblib.dump(chef, filename)
@@ -207,19 +207,20 @@ def save_chefs(chefs: List[Chef], output_dir: str = "models"):
 def main():
     # Configuration
     DATA_FILE = "data/recipes_data.csv"
-    NUM_CHEFS = 2
-    RECIPES_PER_CHEF = 100
+    NUM_CHEFS = 5
+    RECIPES_PER_CHEF = 50000
     OUTPUT_DIR = "app/models"
+    sample_size = RECIPES_PER_CHEF * NUM_CHEFS
     
     try:
         # Load and preprocess data
-        df = load_and_preprocess_data(DATA_FILE)
+        df = load_and_preprocess_data(DATA_FILE, sample_size=sample_size)
         
         # Create and train chefs
         chefs = create_chefs(df, num_chefs=NUM_CHEFS, recipes_per_chef=RECIPES_PER_CHEF)
         
         # Save the trained models
-        save_chefs(chefs, output_dir=OUTPUT_DIR)
+        save_chefs(chefs, output_dir=OUTPUT_DIR, recipes_per_chef=RECIPES_PER_CHEF)
         
         print("\nTraining completed successfully!")
         
