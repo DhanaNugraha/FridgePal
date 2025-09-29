@@ -49,7 +49,7 @@ def load_and_preprocess_data(filepath: str, sample_size: int = 1000) -> pd.DataF
                 header = [h.strip("\"' ") for h in first_line.split(delimiter)]
 
                 # Check if we have the required columns
-                required_columns = ["title", "ingredients", "directions"]
+                required_columns = ["title", "ingredients", "directions", "NER"]
                 header_lower = [h.lower() for h in header]
                 missing_columns = [
                     col for col in required_columns if col.lower() not in header_lower
@@ -168,6 +168,7 @@ def create_chefs(df: pd.DataFrame, num_chefs: int = 5, recipes_per_chef: int = 1
                 title=row['title'],
                 ingredients=row['ingredients'],
                 instructions=row['directions'],
+                NER_ingredients=row['NER'],
                 cuisine=cuisine
             )
             recipes.append(recipe)

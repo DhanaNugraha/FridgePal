@@ -35,7 +35,7 @@ def load_chefs(models_dir: str = "models") -> List[Chef]:
 
 
 def get_recommendations(
-    chefs: List[Chef], ingredients: List[str], top_n: int = 5
+    chefs: List[Chef], ingredients: List[str], top_n: int = 5, cosine_weight: float = 0.5
 ) -> List[Dict[str, Any]]:
     """
     Get recipe recommendations from all chefs.
@@ -52,7 +52,7 @@ def get_recommendations(
 
     for chef in chefs:
         print(f"\nGetting recommendations from {chef.name}...")
-        recommendations = chef.get_recommendations(ingredients, top_n=top_n)
+        recommendations = chef.get_recommendations(ingredients, top_n=top_n, cosine_weight=cosine_weight)
         all_recommendations.extend(recommendations)
 
     # Sort all recommendations by similarity score
@@ -80,7 +80,7 @@ def print_recommendations(recommendations: List[Dict[str, Any]], max_recipes: in
         # Display score components if available
         if 'score_components' in recipe:
             scores = recipe['score_components']
-            print(f"   \n   SCORE BREAKDOWN:")
+            print("\n   SCORE BREAKDOWN:")
             print(f"   {'Final Score:':<20} {recipe['similarity_score'] * 100:.2f}%")
             print(f"   {'TF-IDF Score:':<20} {scores['cosine_score'] * 100:.2f}% (weight: {scores['cosine_weight'] * 100:.0f}%)")
             print(f"   {'Overlap Score:':<20} {scores['overlap_score'] * 100:.2f}% (weight: {scores['overlap_weight'] * 100:.0f}%)")
@@ -95,11 +95,24 @@ def print_recommendations(recommendations: List[Dict[str, Any]], max_recipes: in
         else:
             ingredients = str(recipe["ingredients"])
 
-        # Limit the length of ingredients preview
-        if len(ingredients) > 200:
-            ingredients = ingredients[:200] + "..."
+        # Format NER ingredients for better readability
+        ner_ingredients = recipe.get("NER_ingredients", "N/A")
+        if isinstance(ner_ingredients, str):
+            formatted_ner = ner_ingredients
+        elif isinstance(ner_ingredients, list):
+            formatted_ner = ", ".join(str(ing).strip() for ing in ner_ingredients)
+        else:
+            formatted_ner = str(ner_ingredients)
+
+        # Limit the length of previews
+        max_length = 200
+        if len(ingredients) > max_length:
+            ingredients = ingredients[:max_length] + "..."
+        if len(formatted_ner) > max_length:
+            formatted_ner = formatted_ner[:max_length] + "..."
 
         print(f"\n   INGREDIENTS: {ingredients}")
+        print(f"   NER INGREDIENTS: {formatted_ner}")
         
         # Show instructions for top 3 recipes
         if i <= 3 and 'instructions' in recipe and recipe['instructions']:
@@ -148,7 +161,7 @@ def main():
         print(f"\nSearching for recipes with: {', '.join(test_ingredients)}")
 
         # Get more recommendations (increased top_n to get more results)
-        recommendations = get_recommendations(chefs, test_ingredients, top_n=10)
+        recommendations = get_recommendations(chefs, test_ingredients, top_n=10, cosine_weight=0.7)
 
         # Print all results with improved formatting
         print_recommendations(recommendations)
