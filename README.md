@@ -82,7 +82,38 @@ FridgePal is a smart recipe recommendation system that helps you discover delici
 
 ## 🍳 Training Your Own Chefs
 
-To train the multi-chef recommendation system:
+### Data Setup
+
+Before training, you'll need to set up the recipe data:
+
+1. **Create a data directory**
+   ```bash
+   # From the backend directory
+   mkdir -p app/data/raw
+   ```
+
+2. **Download the recipe dataset**
+   - Visit [Recipe Dataset on Kaggle](https://www.kaggle.com/datasets/wilmerarltstrmberg/recipe-dataset-over-2m)
+   - Download the dataset (requires Kaggle account)
+   - Place the downloaded CSV file in the `data/raw` directory
+
+   Or use the Kaggle API if you have it set up:
+   ```bash
+   # Install kaggle if needed
+   pip install kaggle
+   
+   # Set up Kaggle API (if not already done)
+   mkdir -p ~/.kaggle
+   # Place your kaggle.json file here
+   
+   # Download the dataset
+   kaggle datasets download -d wilmerarltstrmberg/recipe-dataset-over-2m -p data/raw/
+   unzip data/raw/recipe-dataset-over-2m.zip -d data/raw/
+   ```
+
+### Training the Chefs
+
+Once the data is in place, you can train the multi-chef recommendation system:
 
 ```bash
 # From the backend directory
@@ -102,13 +133,9 @@ Once the backend is running, you can access:
 ### Example API Request
 
 ```bash
-curl -X 'POST' \
-  'http://localhost:8000/api/recipes' \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "ingredients": ["chicken", "tomato", "onion"],
-    "max_results": 3
-  }'
+curl -X POST "http://localhost:8000/api/v1/recipes" \
+  -H "Content-Type: application/json" \
+  -d "{\"ingredients\": [\"chicken\", \"tomato\", \"onion\"], \"max_results\": 5, \"variety\": 0.7}"
 ```
 
 ## 🏗️ Project Structure
