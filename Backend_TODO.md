@@ -42,9 +42,9 @@
 - [x] GET /api/health (for monitoring)
 
 ## Documentation
-- [ ] API documentation (OpenAPI/Swagger)
+- [X] API documentation (OpenAPI/Swagger)
 - [X] Code comments
-- [ ] README with setup instructions
+- [X] README with setup instructions
 
 ## Deployment
 - [ ] Dockerfile
