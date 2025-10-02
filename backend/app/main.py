@@ -1,7 +1,10 @@
 import logging
 import sys
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
+
+from app.api.exception_handlers import register_exception_handlers
 
 from app.core.config import settings
 from app.api.api_v1 import api_router
@@ -29,46 +32,83 @@ for logger_name in logging.root.manager.loggerDict:
 logger = logging.getLogger(__name__)
 logger.info("Application logger configured")
 
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    description="API for FridgePal - Your smart recipe recommendation system",
-    version="0.1.0",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
-)
-
-# Set up CORS with preflight support
-if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
-        allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
-        allow_methods=settings.CORS_ALLOW_METHODS,
-        allow_headers=settings.CORS_ALLOW_HEADERS,
-        expose_headers=["*"],
-        max_age=settings.CORS_MAX_AGE,
+# Initialize FastAPI with OpenAPI configuration
+def get_application() -> FastAPI:
+    app = FastAPI(
+        title=settings.PROJECT_NAME,
+        version="1.0.0",
+        docs_url="/docs",
+        redoc_url="/redoc",
+        openapi_url=f"{settings.API_V1_STR}/openapi.json"
     )
+    
+    # Add CORS middleware
+    if settings.BACKEND_CORS_ORIGINS:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+            allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+            allow_methods=settings.CORS_ALLOW_METHODS,
+            allow_headers=settings.CORS_ALLOW_HEADERS,
+            expose_headers=["*"],
+            max_age=settings.CORS_MAX_AGE,
+        )
+    
+    # Include API router
+    app.include_router(api_router, prefix=settings.API_V1_STR)
+    return app
 
-    # Add preflight handler for all endpoints
-    @app.middleware("http")
-    async def add_cors_preflight_headers(request, call_next):
-        if request.method == "OPTIONS":
-            from fastapi.responses import Response
-            response = Response(status_code=204)
-        else:
-            response = await call_next(request)
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    
+    openapi_schema = get_openapi(
+        title=settings.PROJECT_NAME,
+        version="1.0.0",
+        description="""
+        # FridgePal API
         
-        # Add CORS headers to all responses
-        if "origin" in request.headers:
-            response.headers["Access-Control-Allow-Origin"] = ", ".join(settings.BACKEND_CORS_ORIGINS)
-            response.headers["Access-Control-Allow-Methods"] = ", ".join(settings.CORS_ALLOW_METHODS)
-            response.headers["Access-Control-Allow-Headers"] = ", ".join(settings.CORS_ALLOW_HEADERS)
-            response.headers["Access-Control-Allow-Credentials"] = "true"
-            response.headers["Access-Control-Max-Age"] = str(settings.CORS_MAX_AGE)
+        The FridgePal API provides intelligent recipe recommendations based on available ingredients.
+        It uses a multi-chef ensemble approach to deliver diverse and personalized recipe suggestions.
         
+        ## Key Features
+        - Ingredient-based recipe search
+        - Multiple specialized chef models
+        - Hybrid scoring (TF-IDF + ingredient overlap)
+        - Detailed recipe information
+        
+        ## Authentication
+        No authentication required for this version of the API.
+        """,
+        routes=app.routes,
+    )
+    
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+# Create the FastAPI application
+app = get_application()
+
+# Register exception handlers
+app = register_exception_handlers(app)
+
+# Set the custom OpenAPI schema
+app.openapi = custom_openapi
+
+# CORS preflight handler
+@app.middleware("http")
+async def add_cors_preflight_headers(request: Request, call_next):
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers["Access-Control-Allow-Origin"] = ",".join(settings.BACKEND_CORS_ORIGINS) if settings.BACKEND_CORS_ORIGINS else "*"
+        response.headers["Access-Control-Allow-Methods"] = ",".join(settings.CORS_ALLOW_METHODS)
+        response.headers["Access-Control-Allow-Headers"] = ",".join(settings.CORS_ALLOW_HEADERS)
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.status_code = 200
         return response
-
-# Include API router
-app.include_router(api_router, prefix=settings.API_V1_STR)
+    
+    response = await call_next(request)
+    return response
 
 if __name__ == "__main__":
     import uvicorn
