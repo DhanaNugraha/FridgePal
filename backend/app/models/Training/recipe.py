@@ -3,11 +3,12 @@ from .base import BaseModel
 class Recipe(BaseModel):
     """Recipe model to store recipe information in memory"""
     
-    def __init__(self, id: int, title: str, ingredients: str, instructions: str, cuisine: str = None):
+    def __init__(self, id: int, title: str, ingredients: str, instructions: str, NER_ingredients: str, cuisine: str = None):
         self.id = id
         self.title = title
         self.ingredients = ingredients  # Stored as a string (comma-separated or JSON)
         self.instructions = instructions  # Stored as a string
+        self.NER_ingredients = NER_ingredients  # Stored as a string (comma-separated or JSON)
         self.cuisine = cuisine  # Optional: for chef specialization
         self._similarity_score = 0.0  # For similarity scoring
     

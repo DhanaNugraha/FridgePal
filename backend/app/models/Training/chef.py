@@ -17,7 +17,7 @@ class Chef:
         self.vectorizer = TfidfVectorizer(
             stop_words="english",
             ngram_range=(1, 2),  # Consider both single words and bigrams
-            min_df=2,  # Ignore terms that appear in fewer than 2 documents
+            min_df=1,  # Ignore terms that appear in fewer than 2 documents
             max_df=0.8,  # Ignore terms that appear in more than 80% of documents
         )
         self.recipes: List[Recipe] = []
@@ -27,8 +27,32 @@ class Chef:
         """Train the chef's TF-IDF model on the given recipes"""
         self.recipes = recipes
 
-        # Extract ingredients as a list of strings
-        ingredients_list = [recipe.ingredients for recipe in recipes]
+        def preprocess_ingredients(ing):
+            if not ing or not isinstance(ing, str):
+                return ""
+            # If it's a JSON string, parse it first
+            if (ing.startswith('[') and ing.endswith(']')) or (ing.startswith('{') and ing.endswith('}')):
+                try:
+                    import json
+                    ings = json.loads(ing)
+                    if isinstance(ings, dict):
+                        ings = list(ings.values())
+                    elif not isinstance(ings, list):
+                        ings = [ings]
+                    return ' '.join(str(i).strip() for i in ings if str(i).strip())
+                except Exception as e:
+                    print(f"Error parsing ingredients: {e}")
+                    pass
+            return ing
+
+        # Preprocess ingredients before vectorization
+        ingredients_list = []
+        for recipe in recipes:
+            if hasattr(recipe, 'ingredients'):
+                processed = preprocess_ingredients(recipe.ingredients)
+                ingredients_list.append(processed)
+            else:
+                ingredients_list.append("")  # Empty string if no NER ingredients
 
         # Fit and transform the ingredients
         self.tfidf_matrix = self.vectorizer.fit_transform(ingredients_list)
@@ -59,21 +83,82 @@ class Chef:
         
         # Pre-process recipe ingredients
         def parse_ingredients(ing_str: str) -> set:
-            # First try to handle JSON-like format
-            if ing_str.startswith('[') and ing_str.endswith(']'):
+            if not ing_str or not isinstance(ing_str, str):
+                return set()
+                
+            # Clean the string
+            ing_str = ing_str.strip()
+            
+            # Handle empty string
+            if not ing_str:
+                return set()
+                
+            # Try to handle JSON format if it looks like JSON
+            if (ing_str.startswith('[') and ing_str.endswith(']')) or \
+               (ing_str.startswith('{') and ing_str.endswith('}')):
                 try:
                     import json
-                    ings = json.loads(ing_str.replace("'", '"'))  # Handle single quotes in JSON
-                    return {normalize_ingredient(str(ing)) for ing in ings}
+                    import ast
+                    # First try with json.loads
+                    try:
+                        ings = json.loads(ing_str)
+                    except json.JSONDecodeError:
+                        # If that fails, try with ast.literal_eval which is more lenient
+                        ings = ast.literal_eval(ing_str)
+                    
+                    # Handle different JSON structures
+                    if isinstance(ings, dict):
+                        ings = list(ings.values())
+                    elif not isinstance(ings, list):
+                        ings = [ings]
+                        
+                    return {normalize_ingredient(str(ing)) for ing in ings if str(ing).strip()}
                 except Exception as e:
                     print(f"Error parsing ingredients: {e}")
+                    # If JSON parsing fails, fall through to string processing
                     pass
             
-            # Fall back to comma separation
-            return {normalize_ingredient(ing) for ing in ing_str.split(',') if ing.strip()}
+            # Handle string that might be a list representation
+            if ing_str.startswith('[') and ing_str.endswith(']'):
+                # Remove brackets and split by comma that's not inside quotes
+                content = ing_str[1:-1]
+                # Split by comma but ignore those inside quotes
+                ings = []
+                current = ""
+                in_quotes = False
+                for char in content:
+                    if char == '"' or char == "'":
+                        in_quotes = not in_quotes
+                        current += char
+                    elif char == ',' and not in_quotes:
+                        ings.append(current.strip())
+                        current = ""
+                    else:
+                        current += char
+                if current:
+                    ings.append(current.strip())
+                return {normalize_ingredient(ing.strip(" \"'")) for ing in ings if ing.strip()}
+            
+            # Fall back to simple comma separation (handle cases with quotes)
+            ings = []
+            current = ""
+            in_quotes = False
+            for char in ing_str:
+                if char == '"' or char == "'":
+                    in_quotes = not in_quotes
+                    current += char
+                elif char == ',' and not in_quotes:
+                    ings.append(current.strip())
+                    current = ""
+                else:
+                    current += char
+            if current:
+                ings.append(current.strip())
+                
+            return {normalize_ingredient(ing.strip(" \"'")) for ing in ings if ing.strip()}
         
         # Get recipe ingredients as sets for overlap calculation
-        recipe_ingredients_list = [parse_ingredients(recipe.ingredients) for recipe in self.recipes]
+        recipe_ingredients_list = [parse_ingredients(recipe.NER_ingredients) for recipe in self.recipes]
         
         # Calculate overlap scores
         overlap_scores = np.array([
@@ -85,14 +170,23 @@ class Chef:
         if len(overlap_scores) > 0:
             print(f"Overlap scores - Min: {overlap_scores.min():.2f}, Max: {overlap_scores.max():.2f}, Mean: {overlap_scores.mean():.2f}")
 
-        # Calculate TF-IDF cosine similarity
-        query_text = " ".join(query_ingredients)
-        query_vector = self.vectorizer.transform([query_text])
-        cosine_scores = cosine_similarity(query_vector, self.tfidf_matrix).flatten()
+        # Preprocess query ingredients the same way as training data
+        def preprocess_query_ingredients(ingredients):
+            return ' '.join(str(ing).strip() for ing in ingredients if str(ing).strip())
         
-        # Normalize cosine scores to 0-1 range for fair combination with overlap
-        if len(cosine_scores) > 1:  # Avoid division by zero
-            cosine_scores = (cosine_scores - cosine_scores.min()) / (cosine_scores.max() - cosine_scores.min() + 1e-9)
+        # Calculate TF-IDF cosine similarity
+        query_text = preprocess_query_ingredients(query_ingredients)
+        try:
+            query_vector = self.vectorizer.transform([query_text])
+            cosine_scores = cosine_similarity(query_vector, self.tfidf_matrix).flatten()
+            
+            # Don't normalize cosine scores as they're already in 0-1 range
+            # This prevents all scores from being 100% when there's only one result
+            # or when all results have the same score
+            
+        except Exception as e:
+            print(f"Error in TF-IDF transformation: {e}")
+            cosine_scores = np.zeros(len(self.recipes))
         
         # Calculate hybrid scores
         hybrid_scores = (cosine_weight * cosine_scores) + ((1 - cosine_weight) * overlap_scores)
@@ -111,6 +205,7 @@ class Chef:
                     "id": recipe.id,
                     "title": recipe.title,
                     "ingredients": recipe.ingredients,
+                    "NER_ingredients": recipe.NER_ingredients,
                     "instructions": recipe.instructions,
                     "similarity_score": float(hybrid_scores[idx]),
                     "score_components": {

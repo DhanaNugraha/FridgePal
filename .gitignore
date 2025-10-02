@@ -74,5 +74,7 @@ out/
 
 # Data directory
 backend/data/
+backend/app/models/model_results/
 
 notes.txt
+
