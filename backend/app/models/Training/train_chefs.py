@@ -145,7 +145,7 @@ def create_chefs(df: pd.DataFrame, num_chefs: int = 5, recipes_per_chef: int = 1
     chefs = []
     
     # Define chef specializations (for fun!)
-    cuisines = ["Italian", "Asian", "American", "Mediterranean", "Dessert"]
+    cuisines = ["Marco", "Sofia", "Raj", "Elena", "Hiroshi"]
     
     print(f"Creating {num_chefs} chefs with up to {recipes_per_chef} recipes each...")
     

@@ -58,7 +58,7 @@ class Chef:
         self.tfidf_matrix = self.vectorizer.fit_transform(ingredients_list)
 
     def get_recommendations(
-        self, ingredients: List[str], top_n: int = 5, cosine_weight: float = 0.5
+        self, ingredients: List[str], top_n: int = 5, cosine_weight: float = 0.7
     ) -> List[Dict[str, Any]]:
         """
         Get recipe recommendations based on available ingredients using hybrid scoring.

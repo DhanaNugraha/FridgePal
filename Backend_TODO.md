@@ -43,7 +43,7 @@
 
 ## Documentation
 - [ ] API documentation (OpenAPI/Swagger)
-- [ ] Code comments
+- [X] Code comments
 - [ ] README with setup instructions
 
 ## Deployment

@@ -52,7 +52,8 @@ class ChefService:
     def get_recommendations(
         self, 
         ingredients: List[str], 
-        top_n: int = 5
+        top_n: int = 5,
+        cosine_weight: float = 0.7
     ) -> List[Dict[str, Any]]:
         """
         Get recipe recommendations from all chefs.
@@ -69,7 +70,7 @@ class ChefService:
         for chef in self._chefs:
             try:
                 logger.debug(f"Getting recommendations from {chef.name}...")
-                recommendations = chef.get_recommendations(ingredients, top_n=top_n)
+                recommendations = chef.get_recommendations(ingredients, top_n=top_n, cosine_weight=cosine_weight)
                 all_recommendations.extend(recommendations)
             except Exception as e:
                 logger.error(f"Error from {chef.name}: {str(e)}")

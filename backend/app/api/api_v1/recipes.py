@@ -41,6 +41,7 @@ class RecipeResponse(BaseModel):
 class RecipeRequest(BaseModel):
     ingredients: List[str]
     max_results: int = Field(5, ge=1, le=20)
+    variety: float = Field(0.7, ge=0.0, le=1.0)
 
 @router.get("/health")
 async def health_check():
@@ -77,7 +78,8 @@ async def get_recipes(request: RecipeRequest):
         # Get recommendations from all chefs
         recommendations = chef_service.get_recommendations(
             ingredients=request.ingredients,
-            top_n=request.max_results
+            top_n=request.max_results,
+            cosine_weight=request.variety
         )
         
         # Convert to response model
