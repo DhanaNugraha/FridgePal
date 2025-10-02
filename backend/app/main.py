@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
-from app.api.exception_handlers import register_exception_handlers
+from app.api.utils.exception_handlers import register_exception_handlers
 
 from app.core.config import settings
 from app.api.api_v1 import api_router

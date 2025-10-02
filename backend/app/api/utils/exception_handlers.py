@@ -1,7 +1,7 @@
 from fastapi import Request, status, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from .api_v1.responses import ErrorResponse
+from .responses import ErrorResponse
 
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     """Handle HTTP exceptions and return a standardized error response."""
@@ -30,7 +30,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         details={"errors": errors}
     )
-    
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=error_response.model_dump(exclude_none=True)
@@ -41,9 +40,11 @@ async def python_exception_handler(request: Request, exc: Exception) -> JSONResp
     error_response = ErrorResponse(
         error="Internal server error",
         code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        details={"type": exc.__class__.__name__}
+        details={
+            "type": type(exc).__name__,
+            "message": str(exc)
+        } if str(exc) else None
     )
-    
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content=error_response.model_dump(exclude_none=True)
@@ -51,10 +52,6 @@ async def python_exception_handler(request: Request, exc: Exception) -> JSONResp
 
 def register_exception_handlers(app):
     """Register all exception handlers with the FastAPI app."""
-    from fastapi import HTTPException
-    
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
     app.add_exception_handler(Exception, python_exception_handler)
-    
-    return app
