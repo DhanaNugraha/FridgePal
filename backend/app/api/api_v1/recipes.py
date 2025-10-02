@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, field_validator
 import logging
 
 # Import standard error responses
-from app.api.utils import get_error_responses
+from app.utils import get_error_responses
 
 from app.services.chef_service import chef_service
 
