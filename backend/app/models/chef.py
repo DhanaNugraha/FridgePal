@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Optional
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+import logging
 from .recipe import Recipe
 
 
@@ -37,12 +38,15 @@ class Chef:
                     ings = json.loads(ing)
                     if isinstance(ings, dict):
                         ings = list(ings.values())
-                    elif not isinstance(ings, list):
-                        ings = [ings]
                     return ' '.join(str(i).strip() for i in ings if str(i).strip())
+                except json.JSONDecodeError as e:
+                    # For JSON decode errors, log and return the original string
+                    logging.warning(f"Failed to parse JSON ingredients: {ing}. Error: {e}")
+                    return ing
                 except Exception as e:
-                    print(f"Error parsing ingredients: {e}")
-                    pass
+                    # For any other unexpected errors, log and return empty string
+                    logging.error(f"Unexpected error processing ingredients: {ing}", exc_info=True)
+                    return ""
             return ing
 
         # Preprocess ingredients before vectorization
@@ -52,7 +56,7 @@ class Chef:
                 processed = preprocess_ingredients(recipe.ingredients)
                 ingredients_list.append(processed)
             else:
-                ingredients_list.append("")  # Empty string if no NER ingredients
+                ingredients_list.append("")  # Empty string if no ingredients
 
         # Fit and transform the ingredients
         self.tfidf_matrix = self.vectorizer.fit_transform(ingredients_list)
@@ -82,7 +86,7 @@ class Chef:
         query_ingredients = {normalize_ingredient(ing) for ing in ingredients if ing.strip()}
         
         # Pre-process recipe ingredients
-        def parse_ingredients(ing_str: str) -> set:
+        def parse_NER_ingredients(ing_str: str) -> set:
             if not ing_str or not isinstance(ing_str, str):
                 return set()
                 
@@ -158,7 +162,7 @@ class Chef:
             return {normalize_ingredient(ing.strip(" \"'")) for ing in ings if ing.strip()}
         
         # Get recipe ingredients as sets for overlap calculation
-        recipe_ingredients_list = [parse_ingredients(recipe.NER_ingredients) for recipe in self.recipes]
+        recipe_ingredients_list = [parse_NER_ingredients(recipe.NER_ingredients) for recipe in self.recipes]
         
         # Calculate overlap scores
         overlap_scores = np.array([

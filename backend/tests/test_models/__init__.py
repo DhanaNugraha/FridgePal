@@ -2,4 +2,4 @@
 
 # pytest --cov=app tests/test_models/test_chef.py -v
 
-# pytest --cov=app --cov-report=term-missing tests/test_models/test_chef.py -v
+# pytest --cov=app --cov-report=term-missing tests/test_models/ -v

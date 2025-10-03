@@ -1,6 +1,6 @@
 from unittest.mock import patch, MagicMock
 from app.services.chef_service import ChefService
-from app.models.Training.chef import Chef
+from app.models.chef import Chef
 import pytest
 
 
