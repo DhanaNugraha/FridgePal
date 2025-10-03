@@ -130,32 +130,84 @@ Once the backend is running, you can access:
 - **Interactive API Docs**: `http://localhost:8000/docs`
 - **Alternative Docs**: `http://localhost:8000/redoc`
 
-### Example API Request
+## 📚 API Endpoints
 
+### `POST /api/v1/recipes`
+Get recipe recommendations based on ingredients.
+
+**Request Body:**
+```json
+{
+  "ingredients": ["chicken", "tomato", "onion"],
+  "max_results": 5,
+  "variety": 0.7,
+}
+```
+
+**Parameters:**
+- `ingredients` (required): List of ingredient names
+- `max_results` (optional, default=5): Maximum number of recipes to return
+- `variety` (optional, default=0.7): Diversity score (0.0 to 1.0)
+
+**Example Request:**
 ```bash
 curl -X POST "http://localhost:8000/api/v1/recipes" \
   -H "Content-Type: application/json" \
-  -d "{\"ingredients\": [\"chicken\", \"tomato\", \"onion\"], \"max_results\": 5, \"variety\": 0.7}"
+  -d '{"ingredients": ["chicken", "tomato", "onion"], "max_results": 5, "variety": 0.7}'
 ```
+
+**Response:**
+```json
+{
+  "recipes": [
+    {
+      "id": 12345,
+      "title": "Chicken Tomato Stew",
+      "ingredients": ["chicken breast", "tomatoes", "onion", "garlic", "olive oil"],
+      "instructions": ["1. Heat oil in a pot..."],
+      "cooking_time": 45,
+      "cuisine_type": "Mediterranean",
+      "similarity_score": 0.92,
+      "chef": "chef_italian_1"
+    }
+  ]
+}
+```
+
 
 ## 🏗️ Project Structure
 
 ```
 FridgePal/
-├── backend/                  # FastAPI backend
-│   ├── app/                 
-│   │   ├── api/             # API routes
-│   │   ├── core/            # Core configurations
-│   │   ├── models/          # Data models and training code
-│   │   ├── services/        # Business logic
-│   │   └── main.py          # Application entry point
-│   ├── data/                # Recipe datasets
-│   └── requirements.txt     # Python dependencies
-├── frontend/                # Next.js frontend
-│   ├── public/              # Static files
-│   ├── src/                 # Source code
-│   └── package.json         # Frontend dependencies
-└── README.md                # This file
+├── backend/                          # FastAPI backend
+│   ├── app/
+│   │   ├── api/                     # API routes
+│   │   │   └── api_v1/              # API version 1
+│   │   │       ├── __init__.py      # API router initialization
+│   │   │       └── recipes.py       # Recipe endpoints
+│   │   │
+│   │   ├── core/                    # Core configurations
+│   │   │   └── config.py            # Application configuration
+│   │   │
+│   │   ├── models/                  # Data models and ML components
+│   │   │   ├── Training/            # Model training code
+│   │   │   └── chef_models.py       # Chef model implementations
+│   │   │
+│   │   ├── services/                # Business logic
+│   │   │   └── recipe_service.py    # Recipe recommendation logic
+│   │   │
+│   │   ├── utils/                   # Utility functions
+│   │   │   ├── __init__.py          # Package initialization
+│   │   │   ├── exception_handlers.py # Custom exception handling
+│   │   │   └── responses.py         # Standardized API responses
+│   │   │
+│   │   └── main.py                  # FastAPI application entry point
+│   │
+│   ├── tests/                      # Test files
+│   ├── .env.example                # Environment variables template
+│   └── requirements.txt            # Python dependencies
+│
+└── README.md                       # This file
 ```
 
 ## 🤝 Contributing

@@ -1,6 +1,6 @@
-from pydantic_settings import BaseSettings
 from typing import List, Union
-from pydantic import field_validator
+from pydantic import field_validator, ConfigDict
+from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # API settings
@@ -28,10 +28,12 @@ class Settings(BaseSettings):
     # Application settings
     DEBUG: bool = True
     
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
-        env_file_encoding = 'utf-8'
+    model_config = ConfigDict(
+        case_sensitive=True,
+        env_file=".env",
+        env_file_encoding='utf-8',
+        extra='ignore'  # Ignore extra fields in the config
+    )
 
 # Create settings instance
 settings = Settings()

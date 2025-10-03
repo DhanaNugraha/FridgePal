@@ -1,19 +1,17 @@
-from fastapi import APIRouter, HTTPException, status
 from typing import List, Optional
-from pydantic import BaseModel, Field, field_validator
+from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 import logging
 
-# Import standard error responses
-from app.utils import get_error_responses
-
-from app.services.chef_service import chef_service
-
+from app.services import chef_service
+from app.utils.responses import get_error_responses
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 class RecipeIngredient(BaseModel):
     """Represents an ingredient in a recipe with availability status."""
-    name: str = Field(..., description="Name of the ingredient")
+    name: str
+    is_available: bool = False
     is_available: bool = Field(False, description="Whether the ingredient is available")
 
 class RecipeResponse(BaseModel):
@@ -45,8 +43,9 @@ class RecipeResponse(BaseModel):
             return [i.strip() for i in v.split('.') if i.strip()]
         return v
 
-    class Config:
-        validate_by_name = True
+    model_config = ConfigDict(
+        validate_by_name=True
+    )
 
 class RecipeRequest(BaseModel):
     """Request model for getting recipe recommendations."""
@@ -61,9 +60,9 @@ class RecipeRequest(BaseModel):
     }
     ingredients: List[str] = Field(
         ...,
-        min_items=1,
+        min_length=1,
         description="List of available ingredients to search recipes with",
-        example=["chicken breast", "garlic", "olive oil", "salt", "black pepper"]
+        json_schema_extra={"example": ["chicken breast", "garlic", "olive oil", "salt", "black pepper"]}
     )
     max_results: int = Field(
         5, 
