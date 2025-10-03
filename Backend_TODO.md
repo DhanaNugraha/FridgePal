@@ -24,12 +24,12 @@
 - [x] Add health check endpoint
 
 ## Testing & Optimization
-- [ ] Add unit tests for models and services
-- [ ] Add integration tests for API endpoints
+- [x] Add unit tests for models and services
+- [x] Add integration tests for API endpoints
 - [ ] Optimize TF-IDF vectorization for large datasets
 - [ ] Implement rate limiting
-- [ ] Unit tests for utility functions
-- [ ] Test edge cases
+- [x] Unit tests for utility functions
+- [x] Test edge cases
 - [ ] Load testing
   
 ## ✅ API Endpoints
