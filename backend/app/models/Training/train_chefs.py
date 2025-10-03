@@ -144,8 +144,8 @@ def create_chefs(df: pd.DataFrame, num_chefs: int = 5, recipes_per_chef: int = 1
     """
     chefs = []
     
-    # Define chef specializations (for fun!)
-    cuisines = ["Marco", "Sofia", "Raj", "Elena", "Hiroshi"]
+    # List of chef names
+    chef_names = ["Marco", "Sofia", "Raj", "Elena", "Hiroshi"]
     
     print(f"Creating {num_chefs} chefs with up to {recipes_per_chef} recipes each...")
     
@@ -155,10 +155,9 @@ def create_chefs(df: pd.DataFrame, num_chefs: int = 5, recipes_per_chef: int = 1
         end_idx = start_idx + recipes_per_chef
         chef_df = df.iloc[start_idx:end_idx]
         
-        # Create a chef with a fun name and cuisine
-        chef_name = f"Chef {i+1} ({cuisines[i % len(cuisines)]})"
-        cuisine = cuisines[i % len(cuisines)]
-        chef = Chef(name=chef_name, cuisine=cuisine)
+        # Create a chef with a name
+        chef_name = f"Chef {i+1} ({chef_names[i % len(chef_names)]})"
+        chef = Chef(name=chef_name)
         
         # Create Recipe objects
         recipes = []
@@ -168,8 +167,7 @@ def create_chefs(df: pd.DataFrame, num_chefs: int = 5, recipes_per_chef: int = 1
                 title=row['title'],
                 ingredients=row['ingredients'],
                 instructions=row['directions'],
-                NER_ingredients=row['NER'],
-                cuisine=cuisine
+                NER_ingredients=row['NER']
             )
             recipes.append(recipe)
         
