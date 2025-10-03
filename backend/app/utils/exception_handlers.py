@@ -51,7 +51,15 @@ async def python_exception_handler(request: Request, exc: Exception) -> JSONResp
     )
 
 def register_exception_handlers(app):
-    """Register all exception handlers with the FastAPI app."""
+    """Register all exception handlers with the FastAPI app.
+    
+    Args:
+        app: FastAPI application instance
+        
+    Returns:
+        FastAPI: The FastAPI application with exception handlers registered
+    """
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
     app.add_exception_handler(Exception, python_exception_handler)
+    return app  # Return the app instance for method chaining

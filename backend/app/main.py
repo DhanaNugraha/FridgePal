@@ -58,42 +58,61 @@ def get_application() -> FastAPI:
     app.include_router(api_router, prefix=settings.API_V1_STR)
     return app
 
-def custom_openapi():
-    if app.openapi_schema:
+def custom_openapi(app: FastAPI):
+    logger.info("Generating custom OpenAPI schema...")
+    if not app:
+        logger.error("FastAPI app is None in custom_openapi")
+        raise ValueError("FastAPI app cannot be None")
+        
+    if hasattr(app, 'openapi_schema') and app.openapi_schema:
+        logger.debug("Returning cached OpenAPI schema")
         return app.openapi_schema
     
-    openapi_schema = get_openapi(
-        title=settings.PROJECT_NAME,
-        version="1.0.0",
-        description="""
-        # FridgePal API
+    try:
+        logger.info(f"Generating OpenAPI schema for {settings.PROJECT_NAME}")
+        openapi_schema = get_openapi(
+            title=settings.PROJECT_NAME,
+            version="1.0.0",
+            description="""
+            # FridgePal API
+            
+            The FridgePal API provides intelligent recipe recommendations based on available ingredients.
+            It uses a multi-chef ensemble approach to deliver diverse and personalized recipe suggestions.
+            
+            ## Key Features
+            - Ingredient-based recipe search
+            - Multiple specialized chef models
+            - Hybrid scoring (TF-IDF + ingredient overlap)
+            - Detailed recipe information
+            
+            ## Authentication
+            No authentication required for this version of the API.
+            """,
+            routes=app.routes,
+        )
         
-        The FridgePal API provides intelligent recipe recommendations based on available ingredients.
-        It uses a multi-chef ensemble approach to deliver diverse and personalized recipe suggestions.
-        
-        ## Key Features
-        - Ingredient-based recipe search
-        - Multiple specialized chef models
-        - Hybrid scoring (TF-IDF + ingredient overlap)
-        - Detailed recipe information
-        
-        ## Authentication
-        No authentication required for this version of the API.
-        """,
-        routes=app.routes,
-    )
-    
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
+        app.openapi_schema = openapi_schema
+        logger.info("Successfully generated OpenAPI schema")
+        return app.openapi_schema
+    except Exception as e:
+        logger.error(f"Error generating OpenAPI schema: {str(e)}")
+        raise
 
 # Create the FastAPI application
 app = get_application()
 
-# Register exception handlers
+# Register exception handlers and get the app instance
+logger.info("Registering exception handlers...")
 app = register_exception_handlers(app)
 
 # Set the custom OpenAPI schema
-app.openapi = custom_openapi
+logger.info("Setting up custom OpenAPI schema...")
+if app is None:
+    logger.error("FastAPI app is None after exception handler registration")
+    raise RuntimeError("Failed to initialize FastAPI application")
+
+app.openapi = lambda: custom_openapi(app)
+logger.info("Custom OpenAPI schema setup completed successfully")
 
 # CORS preflight handler
 @app.middleware("http")
