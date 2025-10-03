@@ -27,7 +27,6 @@
 - [ ] Add unit tests for models and services
 - [ ] Add integration tests for API endpoints
 - [ ] Optimize TF-IDF vectorization for large datasets
-- [ ] Add caching for frequent queries
 - [ ] Implement rate limiting
 - [ ] Unit tests for utility functions
 - [ ] Test edge cases
@@ -51,6 +50,5 @@
 - [ ] CI/CD pipeline
 
 ## Performance & Optimization
-- [ ] Add caching layer
 - [ ] Optimize data loading
 - [ ] Add rate limiting

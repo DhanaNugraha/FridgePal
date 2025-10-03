@@ -4,6 +4,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import logging
 from .recipe import Recipe
+import json
+import ast
 
 
 class Chef:
@@ -34,7 +36,6 @@ class Chef:
             # If it's a JSON string, parse it first
             if (ing.startswith('[') and ing.endswith(']')) or (ing.startswith('{') and ing.endswith('}')):
                 try:
-                    import json
                     ings = json.loads(ing)
                     if isinstance(ings, dict):
                         ings = list(ings.values())
@@ -101,8 +102,6 @@ class Chef:
             if (ing_str.startswith('[') and ing_str.endswith(']')) or \
                (ing_str.startswith('{') and ing_str.endswith('}')):
                 try:
-                    import json
-                    import ast
                     # First try with json.loads
                     try:
                         ings = json.loads(ing_str)
