@@ -3,8 +3,8 @@ import pandas as pd
 from typing import List
 import joblib
 from datetime import datetime
-from .chef import Chef
-from .recipe import Recipe
+from app.models.chef import Chef
+from app.models.recipe import Recipe
 
 # python -m app.models.Training.train_chefs
 
@@ -180,22 +180,24 @@ def create_chefs(df: pd.DataFrame, num_chefs: int = 5, recipes_per_chef: int = 1
     
     return chefs
 
-def save_chefs(chefs: List[Chef], output_dir: str = "models", recipes_per_chef: int = 1):
+def save_chefs(chefs: List[Chef], output_dir: str = "../trained_models", recipes_per_chef: int = 1):
     """
     Save trained chef models to disk.
     
     Args:
         chefs: List of trained Chef objects
-        output_dir: Directory to save the models
+        output_dir: Directory to save the models (relative to the script location)
     """
     # Create output directory if it doesn't exist
-    os.makedirs(output_dir, exist_ok=True)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_path = os.path.normpath(os.path.join(script_dir, output_dir))
+    os.makedirs(output_path, exist_ok=True)
     
     # Save each chef's model
     for i, chef in enumerate(chefs):
         # Create a unique filename with timestamp
         timestamp = datetime.now().strftime("%d%m%Y")
-        filename = f"{output_dir}/{chef.name.lower().replace(' ', '_')}_{recipes_per_chef}_recipes_{timestamp}.joblib"
+        filename = os.path.join(output_path, f"{chef.name.lower().replace(' ', '_')}_{recipes_per_chef}_recipes_{timestamp}.joblib")
         
         # Save the chef object
         joblib.dump(chef, filename)
@@ -208,7 +210,7 @@ def main():
     DATA_FILE = "data/recipes_data.csv"
     NUM_CHEFS = 5
     RECIPES_PER_CHEF = 50000
-    OUTPUT_DIR = "app/models"
+    OUTPUT_DIR = "app/models/trained_models"
     sample_size = RECIPES_PER_CHEF * NUM_CHEFS
     
     try:

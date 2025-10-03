@@ -2,23 +2,27 @@ import os
 import joblib
 from pathlib import Path
 from typing import List, Dict, Any
-from .chef import Chef
+from app.models.chef import Chef
 
 # python -m app.models.Training.test_chefs
 
 
-def load_chefs(models_dir: str = "models") -> List[Chef]:
+def load_chefs(models_dir: str = "../trained_models") -> List[Chef]:
     """
     Load all chef models from the specified directory.
 
     Args:
-        models_dir: Directory containing the saved chef models
+        models_dir: Directory containing the saved chef models (relative to script location)
 
     Returns:
         List of loaded Chef objects
     """
+    # Convert relative path to absolute path relative to the script location
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    models_path = os.path.normpath(os.path.join(script_dir, models_dir))
+    
     chefs = []
-    model_files = list(Path(models_dir).glob("*.joblib"))
+    model_files = list(Path(models_path).glob("*.joblib"))
 
     if not model_files:
         raise FileNotFoundError(
@@ -140,7 +144,7 @@ def print_recommendations(recommendations: List[Dict[str, Any]], max_recipes: in
 def main():
     try:
         # Load the trained chefs
-        chefs = load_chefs("app/models")
+        chefs = load_chefs("app/models/trained_models")
 
         # Example query
         test_ingredients = [

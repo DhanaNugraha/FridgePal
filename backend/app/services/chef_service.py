@@ -2,7 +2,7 @@ import logging
 import joblib
 from pathlib import Path
 from typing import List, Dict, Any
-from app.models.Training.chef import Chef
+from app.models.chef import Chef
 
 # Get logger for this module
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class ChefService:
     
     def _load_chefs(self):
         """Load all chef models from the models directory"""
-        models_dir = Path(__file__).parent.parent / "models"
+        models_dir = Path(__file__).parent.parent / "models" / "trained_models"
         logger.info(f"Loading models from {models_dir.absolute()}")
         model_files = list(models_dir.glob("*.joblib"))
         logger.info(f"Found {len(model_files)} model files")
