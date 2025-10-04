@@ -7,19 +7,19 @@ from app.models.chef import Chef
 # python -m app.models.Training.test_chefs
 
 
-def load_chefs(models_dir: str = "../trained_models") -> List[Chef]:
+def load_chefs(models_dir: str = "trained_models") -> List[Chef]:
     """
     Load all chef models from the specified directory.
 
     Args:
-        models_dir: Directory containing the saved chef models (relative to script location)
+        models_dir: Directory name containing the saved chef models (relative to app/models/)
 
     Returns:
         List of loaded Chef objects
     """
-    # Convert relative path to absolute path relative to the script location
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    models_path = os.path.normpath(os.path.join(script_dir, models_dir))
+    # Get the app/models directory path
+    models_dir_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), models_dir)
+    models_path = os.path.normpath(models_dir_path)
     
     chefs = []
     model_files = list(Path(models_path).glob("*.joblib"))

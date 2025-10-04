@@ -180,17 +180,17 @@ def create_chefs(df: pd.DataFrame, num_chefs: int = 5, recipes_per_chef: int = 1
     
     return chefs
 
-def save_chefs(chefs: List[Chef], output_dir: str = "../trained_models", recipes_per_chef: int = 1):
+def save_chefs(chefs: List[Chef], output_dir: str = "trained_models", recipes_per_chef: int = 1):
     """
     Save trained chef models to disk.
     
     Args:
         chefs: List of trained Chef objects
-        output_dir: Directory to save the models (relative to the script location)
+        output_dir: Directory name to save the models (relative to app/models/)
     """
     # Create output directory if it doesn't exist
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    output_path = os.path.normpath(os.path.join(script_dir, output_dir))
+    models_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    output_path = os.path.join(models_dir, output_dir)
     os.makedirs(output_path, exist_ok=True)
     
     # Save each chef's model
@@ -208,9 +208,9 @@ def save_chefs(chefs: List[Chef], output_dir: str = "../trained_models", recipes
 def main():
     # Configuration
     DATA_FILE = "data/recipes_data.csv"
+    OUTPUT_DIR = "trained_models"  # This will be relative to app/models/
     NUM_CHEFS = 5
-    RECIPES_PER_CHEF = 50000
-    OUTPUT_DIR = "app/models/trained_models"
+    RECIPES_PER_CHEF = 50000  # Number of recipes per chef
     sample_size = RECIPES_PER_CHEF * NUM_CHEFS
     
     try:
