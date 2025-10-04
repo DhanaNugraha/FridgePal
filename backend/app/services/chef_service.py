@@ -92,20 +92,23 @@ class ChefService:
             return []
 
     def _reset_models(self):
-        """Reset any model-internal caches"""
+        """Reset any model-internal caches without deleting trained models"""
+        logger.info("Resetting model caches...")
         for chef in self._chefs:
-            # Clear TF-IDF vectorizer's internal cache
-            if hasattr(chef.vectorizer, 'clear_cache'):
-                chef.vectorizer.clear_cache()
-            
-            # Clear any numpy/scipy internal caches
-            if hasattr(chef.vectorizer, '_clear_state'):
-                chef.vectorizer._clear_state()
-            
-            # Clear the TF-IDF matrix to free up memory
-            if hasattr(chef, 'tfidf_matrix'):
-                del chef.tfidf_matrix
-                chef.tfidf_matrix = None
+            try:
+                # Clear TF-IDF vectorizer's internal cache if it exists
+                if hasattr(chef, 'vectorizer') and chef.vectorizer is not None:
+                    if hasattr(chef.vectorizer, 'clear_cache'):
+                        chef.vectorizer.clear_cache()
+                    
+                    # Clear any numpy/scipy internal caches
+                    if hasattr(chef.vectorizer, '_clear_state'):
+                        chef.vectorizer._clear_state()
+                
+                logger.debug(f"Reset caches for {chef.name}")
+            except Exception as e:
+                logger.warning(f"Error resetting caches for {chef.name}: {str(e)}")
+        logger.info("Model caches reset completed")
 
     def get_recommendations(
         self,
