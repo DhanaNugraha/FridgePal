@@ -3,10 +3,14 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 import logging
 
-from app.services import chef_service
+from app.services.chef_service import ChefService
 from app.utils.responses import get_error_responses
+
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+# Get the singleton instance of ChefService
+chef_service = ChefService()
 
 class RecipeIngredient(BaseModel):
     """Represents an ingredient in a recipe with availability status."""
