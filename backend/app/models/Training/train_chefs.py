@@ -210,7 +210,7 @@ def main():
     DATA_FILE = "data/recipes_data.csv"
     OUTPUT_DIR = "trained_models"  # This will be relative to app/models/
     NUM_CHEFS = 5
-    RECIPES_PER_CHEF = 50000  # Number of recipes per chef
+    RECIPES_PER_CHEF = 20000  # Number of recipes per chef
     sample_size = RECIPES_PER_CHEF * NUM_CHEFS
     
     try:
