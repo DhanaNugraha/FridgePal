@@ -1,0 +1,165 @@
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Project specific
+*.pkl
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.pth
+*.pt
+*.bin
+*.onnx
+*.pb
+*.tflite
+*.tfl
+*.lite
+*.tflm
+*.meta
+*.index
+*.data-*
+*.ckpt
+*.safetensors
+*.joblib
+*.pkl.gz
+*.hdf
+*.h5py
+*.model
+*.weights
+*.pbtxt
+*.prototxt
+*.caffemodel
+
+# Project files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Local development
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Kaggle data
+data/raw/
+*.csv
+*.zip
+*.gz
+*.tar
+*.tgz
+*.json
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Project files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Local development
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Project specific
+*.pkl
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.pth
+*.pt
+*.bin
+*.onnx
+*.pb
+*.tflite
+*.ckpt
+*.safetensors
+*.joblib
+*.model
+*.weights
+
+# Data files
+data/raw/
+*.csv
+*.zip
+*.gz
+*.tar
+*.tgz
+*.json
+
+# Include trained models
+!app/models/trained_models/

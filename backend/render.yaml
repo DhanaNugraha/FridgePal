@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: fridgpal-backend
+    env: python
+    build:
+      dockerfile: Dockerfile
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10
+      - key: PORT
+        value: 10000
+    plan: free
+    numInstances: 1
+    healthCheckPath: /api/health
+    autoDeploy: true
