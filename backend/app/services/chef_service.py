@@ -5,6 +5,7 @@ from typing import List, Dict, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import partial
 from app.models.chef import Chef
+import time
 
 # Get logger for this module
 logger = logging.getLogger(__name__)
@@ -59,9 +60,13 @@ class ChefService:
         cosine_weight: float
     ) -> List[Dict[str, Any]]:
         """Helper method to get recommendations from a single chef."""
+        start_time = time.time()
         try:
-            logger.debug(f"Getting recommendations from {chef.name}...")
-            return chef.get_recommendations(ingredients, top_n=top_n, cosine_weight=cosine_weight)
+            logger.debug(f"Starting recommendations from {chef.name}...")
+            result = chef.get_recommendations(ingredients, top_n=top_n, cosine_weight=cosine_weight)
+            duration = time.time() - start_time
+            logger.debug(f"Completed {chef.name} in {duration:.2f}s - {len(result)} recommendations")
+            return result
         except Exception as e:
             logger.error(f"Error from {chef.name}: {str(e)}")
             return []
@@ -96,22 +101,31 @@ class ChefService:
         )
         
         # Use ThreadPoolExecutor to process chefs in parallel
+        start_time = time.time()
+        logger.info(f"Starting parallel processing with {len(self._chefs)} chefs")
+        
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit all tasks
-            future_to_chef = {
-                executor.submit(get_recs, chef): chef.name 
-                for chef in self._chefs
-            }
+            # Submit all tasks with timing
+            future_to_chef = {}
+            for chef in self._chefs:
+                future = executor.submit(get_recs, chef)
+                future_to_chef[future] = chef.name
+                logger.debug(f"Submitted task for {chef.name}")
             
             # Process results as they complete
+            completed = 0
             for future in as_completed(future_to_chef):
                 chef_name = future_to_chef[future]
                 try:
                     recommendations = future.result()
                     all_recommendations.extend(recommendations)
-                    logger.debug(f"Processed recommendations from {chef_name}")
+                    completed += 1
+                    logger.info(f"✅ Completed {chef_name} ({completed}/{len(future_to_chef)}) - {len(recommendations)} recipes")
                 except Exception as e:
-                    logger.error(f"Error processing {chef_name}: {str(e)}")
+                    logger.error(f"❌ Error processing {chef_name}: {str(e)}")
+        
+        total_duration = time.time() - start_time
+        logger.info(f"✨ Processed all chefs in {total_duration:.2f} seconds")
         
         # Sort all recommendations by similarity score (descending)
         all_recommendations.sort(key=lambda x: x.get("similarity_score", 0), reverse=True)
