@@ -34,7 +34,6 @@ ENV/
 *.pkl.gz
 *.hdf
 *.h5py
-*.model
 *.weights
 *.pbtxt
 *.prototxt
@@ -149,7 +148,6 @@ MANIFEST
 *.ckpt
 *.safetensors
 *.joblib
-*.model
 *.weights
 
 # Data files
@@ -162,4 +160,4 @@ data/raw/
 *.json
 
 # Include trained models
-!app/models/trained_models/
+!app/models/

@@ -45,8 +45,8 @@
 - [X] README with setup instructions
 
 ## Deployment
-- [ ] Dockerfile
-- [ ] Deployment configuration
+- [x] Dockerfile
+- [x] Deployment configuration
 - [ ] CI/CD pipeline
 
 ## Performance & Optimization
