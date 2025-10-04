@@ -1,11 +1,30 @@
 import logging
-import joblib
+import os
+import psutil
+import gc
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+from app.models.chef import Chef
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import partial
-from app.models.chef import Chef
 import time
+import joblib
+
+def get_memory_usage() -> dict:
+    """Get current process memory usage in MB"""
+    process = psutil.Process(os.getpid())
+    mem_info = process.memory_info()
+    return {
+        'rss': mem_info.rss / 1024 / 1024,  # Resident Set Size
+        'vms': mem_info.vms / 1024 / 1024,  # Virtual Memory Size
+        'percent': process.memory_percent()
+    }
+
+def log_memory_usage(prefix: str = ""):
+    """Log current memory usage with optional prefix"""
+    mem = get_memory_usage()
+    logger.info(f"{prefix} Memory: {mem['rss']:.2f}MB RSS, {mem['vms']:.2f}MB VMS ({mem['percent']:.1f}%)")
+    return mem
 
 # Get logger for this module
 logger = logging.getLogger(__name__)
@@ -30,6 +49,7 @@ class ChefService:
     
     def _load_chefs(self):
         """Load all chef models from the models directory"""
+        log_memory_usage("Before loading models:")
         models_dir = Path(__file__).parent.parent / "models" / "trained_models"
         logger.info(f"Loading models from {models_dir.absolute()}")
         model_files = list(models_dir.glob("*.joblib"))
@@ -71,12 +91,28 @@ class ChefService:
             logger.error(f"Error from {chef.name}: {str(e)}")
             return []
 
+    def _reset_models(self):
+        """Reset any model-internal caches"""
+        for chef in self._chefs:
+            # Clear TF-IDF vectorizer's internal cache
+            if hasattr(chef.vectorizer, 'clear_cache'):
+                chef.vectorizer.clear_cache()
+            
+            # Clear any numpy/scipy internal caches
+            if hasattr(chef.vectorizer, '_clear_state'):
+                chef.vectorizer._clear_state()
+            
+            # Clear the TF-IDF matrix to free up memory
+            if hasattr(chef, 'tfidf_matrix'):
+                del chef.tfidf_matrix
+                chef.tfidf_matrix = None
+
     def get_recommendations(
-        self, 
-        ingredients: List[str], 
+        self,
+        ingredients: List[str],
         top_n: int = 5,
         cosine_weight: float = 0.7,
-        max_workers: int = None
+        max_workers: Optional[int] = None
     ) -> List[Dict[str, Any]]:
         """
         Get recipe recommendations from all chefs in parallel.
@@ -100,9 +136,16 @@ class ChefService:
             cosine_weight=cosine_weight
         )
         
+        # Memory check before parallel processing
+        log_memory_usage("Before parallel processing:")
+        
         # Use ThreadPoolExecutor to process chefs in parallel
         start_time = time.time()
         logger.info(f"Starting parallel processing with {len(self._chefs)} chefs")
+        
+        # Log thread information
+        import threading
+        logger.debug(f"Active threads: {threading.active_count()}")
         
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             # Submit all tasks with timing
@@ -127,8 +170,19 @@ class ChefService:
         total_duration = time.time() - start_time
         logger.info(f"✨ Processed all chefs in {total_duration:.2f} seconds")
         
+        # Memory check after processing
+        log_memory_usage("After processing:")
+        
         # Sort all recommendations by similarity score (descending)
         all_recommendations.sort(key=lambda x: x.get("similarity_score", 0), reverse=True)
+        
+        # Reset model caches
+        self._reset_models()
+        
+        # Force garbage collection and log final memory
+        gc.collect()
+        log_memory_usage("After GC and reset:")
+        
         return all_recommendations
 
 # Create a singleton instance

@@ -80,6 +80,32 @@ FridgePal is a smart recipe recommendation system that helps you discover delici
    ```
    The app will be available at `http://localhost:3000`
 
+## 🏗️ Backend Architecture
+
+### Parallel Multi-Chef Processing
+
+The backend employs an efficient parallel processing system to handle multiple culinary experts (chefs) simultaneously:
+
+- **Concurrent Execution**: Utilizes Python's `ThreadPoolExecutor` to process multiple chefs in parallel
+- **Load Distribution**: Evenly distributes the workload across available CPU cores
+- **Non-blocking I/O**: Asynchronous handling of recommendations to maximize throughput
+- **Fault Isolation**: Each chef operates independently, ensuring one chef's failure doesn't affect others
+
+### Memory Management
+
+Optimized memory usage through several key strategies:
+
+- **Selective Model Loading**: Loads only necessary components into memory
+- **Cache Management**:
+  - Implements intelligent cache clearing between requests
+  - Resets TF-IDF matrices after processing
+  - Cleans up temporary objects
+- **Garbage Collection**:
+  - Strategic `gc.collect()` calls to reclaim memory
+  - Monitors memory usage with detailed logging
+  - Maintains stable memory footprint 
+- **Efficient Data Structures**: Uses memory-efficient data structures for recipe storage and processing
+
 ## 🍳 Training Your Own Chefs
 
 ### Data Setup
