@@ -19,23 +19,6 @@
     --radius: 0.5rem;
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --primary: 2 91% 70%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 177 64% 64%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --border: 217.2 32.6% 17.5%;
-    --border-foreground: 210 40% 98%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 2 91% 70%;
-  }
-}
-
-@layer base {
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;

@@ -44,7 +44,6 @@
 ## 🎨 Styling & Theming
 - [ ] Set up Tailwind configuration
 - [ ] Define color palette and typography
-- [ ] Dark/light theme support
 - [ ] Responsive breakpoints
 - [ ] Animation presets with Framer Motion
 
