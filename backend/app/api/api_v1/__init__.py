@@ -6,4 +6,4 @@ api_router = APIRouter()
 # Import and include route modules here
 from . import recipes  # noqa: E402
 
-api_router.include_router(recipes.router, prefix="/v1/recipes", tags=["recipes"])
+api_router.include_router(recipes.router, prefix="/api/v1/recipes", tags=["recipes"])

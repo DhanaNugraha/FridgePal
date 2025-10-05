@@ -39,7 +39,7 @@ def get_application() -> FastAPI:
         version="1.0.0",
         docs_url="/docs",
         redoc_url="/redoc",
-        openapi_url=f"{settings.API_V1_STR}/openapi.json"
+        openapi_url="/api/v1/recipes/openapi.json"
     )
     
     # Add CORS middleware
@@ -55,7 +55,7 @@ def get_application() -> FastAPI:
         )
     
     # Include API router
-    app.include_router(api_router, prefix=settings.API_V1_STR)
+    app.include_router(api_router)
     return app
 
 def custom_openapi(app: FastAPI):

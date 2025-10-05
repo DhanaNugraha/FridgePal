@@ -1,7 +1,7 @@
 # FridgePal API Documentation
 
 ## Base URL
-`/api/v1`
+`/api/v1/recipes`
 
 ## Authentication
 This API does not require authentication.
@@ -29,7 +29,7 @@ GET /health
 Get personalized recipe recommendations based on available ingredients.
 
 ```http
-POST /recipes
+POST /
 ```
 
 #### Request Body
