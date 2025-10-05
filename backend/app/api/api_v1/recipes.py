@@ -159,6 +159,34 @@ class RecipeListResponse(BaseModel):
         status.HTTP_200_OK: {
             "description": "Successfully returned recipe recommendations.",
             "model": RecipeListResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "recipes": [
+                            {
+                                "id": 3806,
+                                "title": "Low-Fat Potato Bites",
+                                "similarity_score": 0.4898641894838388,
+                                "ingredients": [
+                                    "4 to 5 medium potatoes",
+                                    "2 tbsp. olive oil",
+                                    "garlic salt"
+                                ],
+                                "instructions": [
+                                    "Preheat oven to 350°",
+                                    "Cut potatoes in half, then quarters and dice",
+                                    "Put in baking pan",
+                                    "Pour oil over potatoes using hands to make sure each potato has oil on it",
+                                    "Sprinkle with garlic salt",
+                                    "Put in oven and bake for 30 minutes, stirring occasionally"
+                                ],
+                                "chef": "Chef 1 (Marco)",
+                                "cuisine": None
+                            }
+                        ]
+                    }
+                }
+            },
         },
         **get_error_responses(
             status.HTTP_400_BAD_REQUEST,
