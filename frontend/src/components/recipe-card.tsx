@@ -6,19 +6,15 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
+import { Recipe } from '@/lib/api';
+
 type RecipeCardProps = {
-  recipe: {
-    id: string;
-    title: string;
-    similarity_score: number;
-    ingredients: string[];
-    instructions: string[];
-    chef: string;
-    cuisine?: string;
+  recipe: Recipe & {
+    // Add any additional frontend-only properties here
     image?: string;
     prepTime?: string;
   };
-  onViewRecipe: () => void;
+  onViewRecipe?: () => void;
 };
 
 export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
@@ -101,19 +97,20 @@ export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
               Key Ingredients:
             </h4>
             <p className="text-sm text-amber-700 line-clamp-2">
-              {recipe.ingredients.slice(0, 4).join(', ')}
               {recipe.ingredients.length > 4 && '...'}
             </p>
           </div>
           
-          <Button 
-            onClick={onViewRecipe}
-            variant="outline"
-            className="w-full border-amber-300 text-amber-700 hover:bg-amber-50 hover:border-amber-400 flex items-center justify-center gap-2"
-          >
-            <Info className="w-4 h-4" />
-            View Recipe
-          </Button>
+          {onViewRecipe && (
+            <Button 
+              variant="outline" 
+              className="mt-4 w-full border-amber-500 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
+              onClick={onViewRecipe}
+            >
+              <Info className="w-4 h-4 mr-2" />
+              View Recipe
+            </Button>
+          )}
         </div>
       </div>
     </motion.div>

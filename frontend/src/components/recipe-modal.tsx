@@ -5,19 +5,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useCallback, useEffect } from 'react';
 
-type RecipeModalProps = {
-  recipe: {
-    id: string;
-    title: string;
-    ingredients: string[];
-    instructions: string[];
-    chef: string;
-    cuisine?: string;
-    prepTime?: string;
+import { Recipe } from '@/lib/api';
+
+interface RecipeModalProps {
+  recipe: (Recipe & {
+    // Add any additional frontend-only properties here
     image?: string;
-  } | null;
+    prepTime?: string;
+  }) | null;
   onClose: () => void;
-};
+}
 
 export function RecipeModal({ recipe, onClose }: RecipeModalProps) {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {

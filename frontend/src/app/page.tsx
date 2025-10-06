@@ -1,9 +1,23 @@
-import { Suspense } from 'react';
+'use client';
+
+import { useState } from 'react';
 import { SearchBar } from '@/components/search-bar';
-import { RecipeGrid } from '@/components/recipe-grid';
-import { RecipeModal } from '@/components/recipe-modal';
+import { RecipeCard } from '@/components/recipe-card';
+import { useRecipes } from '@/hooks/useRecipes';
+import { Recipe } from '@/lib/api';
 
 export default function Home() {
+  const [searchParams, setSearchParams] = useState<{ ingredients: string[] }>({ ingredients: [] });
+  const { data: recipes, isLoading, error } = useRecipes({
+    ingredients: searchParams.ingredients,
+    max_results: 10,
+    variety: 0.7
+  });
+
+  const handleSearch = (ingredients: string[]) => {
+    setSearchParams({ ingredients });
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100">
       <div className="container mx-auto px-4 py-12">
@@ -16,20 +30,39 @@ export default function Home() {
           </p>
           
           <div className="max-w-2xl mx-auto">
-            <SearchBar />
+            <SearchBar 
+              onSearch={handleSearch} 
+              isLoading={isLoading} 
+            />
           </div>
         </div>
 
-        <Suspense fallback={
+        {isLoading && searchParams.ingredients.length > 0 && (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
           </div>
-        }>
-          <RecipeGrid />
-        </Suspense>
+        )}
+
+        {error && (
+          <div className="text-center py-12">
+            <p className="text-red-500">Error loading recipes. Please try again.</p>
+          </div>
+        )}
+
+        {!isLoading && recipes && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {recipes.map((recipe) => (
+              <RecipeCard key={recipe.id} recipe={recipe} />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && !recipes?.length && searchParams.ingredients.length > 0 && (
+          <div className="text-center py-12">
+            <p className="text-amber-800">No recipes found. Try different ingredients!</p>
+          </div>
+        )}
       </div>
-      
-      {false && <RecipeModal recipe={null} onClose={() => {}} />}
     </main>
   );
 }
