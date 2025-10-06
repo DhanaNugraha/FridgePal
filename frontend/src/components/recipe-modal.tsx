@@ -4,9 +4,7 @@ import { X, Clock, ChefHat, CheckCircle, AlertCircle, ChefHat as ChefIcon } from
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useCallback, useEffect } from 'react';
-
 import { Recipe } from '@/lib/api';
-import { log } from 'console';
 
 interface RecipeModalProps {
   recipe: (Recipe & {

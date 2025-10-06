@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { Clock, ChefHat, Info } from 'lucide-react';
-import Image from 'next/image';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
