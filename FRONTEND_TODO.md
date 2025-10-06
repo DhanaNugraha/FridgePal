@@ -18,11 +18,12 @@
   - [x] Empty state when no results
 
 - [x] **Recipe Detail** (Modal)
-  - [ ] Show modal when recipe is clicked
+  - [x] Show modal when recipe is clicked
   - [x] Full recipe view in modal
   - [x] Ingredients list
   - [x] Step-by-step instructions
   - [x] Close button and keyboard navigation
+  - [ ] remove unnecessary symbols from recipe details ex: "[", "]", "(", ")", '"'
 
 ### Components
 - [x] **RecipeCard**

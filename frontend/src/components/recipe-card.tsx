@@ -30,14 +30,28 @@ export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
   // Extract chef name (remove anything in parentheses)
   const chefName = recipe.chef.split('(')[0].trim();
 
+  const handleCardClick = () => {
+    console.log('Card clicked, onViewRecipe:', onViewRecipe);
+    onViewRecipe?.();
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full"
+      className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
     >
       {/* Recipe Image */}
       <div className="relative h-48 bg-amber-100 overflow-hidden">
@@ -105,7 +119,10 @@ export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
             <Button 
               variant="outline" 
               className="mt-4 w-full border-amber-500 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
-              onClick={onViewRecipe}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent card's onClick from firing
+                onViewRecipe?.();
+              }}
             >
               <Info className="w-4 h-4 mr-2" />
               View Recipe

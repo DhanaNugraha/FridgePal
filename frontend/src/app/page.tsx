@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { SearchBar } from '@/components/search-bar';
-import { RecipeCard } from '@/components/recipe-card';
+import { RecipeGrid } from '@/components/recipe-grid';
 import { useRecipes } from '@/hooks/useRecipes';
 import { Recipe } from '@/lib/api';
 
@@ -49,19 +49,12 @@ export default function Home() {
           </div>
         )}
 
-        {!isLoading && recipes && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recipes.map((recipe) => (
-              <RecipeCard key={recipe.id} recipe={recipe} />
-            ))}
-          </div>
-        )}
-
-        {!isLoading && !recipes?.length && searchParams.ingredients.length > 0 && (
-          <div className="text-center py-12">
-            <p className="text-amber-800">No recipes found. Try different ingredients!</p>
-          </div>
-        )}
+        <RecipeGrid 
+          recipes={recipes}
+          isLoading={isLoading}
+          isError={!!error}
+          searchQuery={searchParams.ingredients.join(', ')}
+        />
       </div>
     </main>
   );
