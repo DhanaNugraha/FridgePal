@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useCallback, useEffect } from 'react';
 
 import { Recipe } from '@/lib/api';
+import { log } from 'console';
 
 interface RecipeModalProps {
   recipe: (Recipe & {
@@ -39,8 +40,10 @@ export function RecipeModal({ recipe, onClose }: RecipeModalProps) {
 
   if (!recipe) return null;
 
-  // Extract chef name (remove anything in parentheses)
-  const chefName = recipe.chef.split('(')[0].trim();
+  // Format chef name from "Chef 1 (Marco)" to "Chef 1, Marco"
+  const chefName = recipe.chef
+    .replace(' (', ', ')
+    .replace(')', '');
 
   return (
     <AnimatePresence>
@@ -126,12 +129,22 @@ export function RecipeModal({ recipe, onClose }: RecipeModalProps) {
                     Ingredients
                   </h3>
                   <ul className="space-y-2">
-                    {recipe.ingredients.map((ingredient, index) => (
-                      <li key={index} className="flex items-start">
-                        <CheckCircle className="h-5 w-5 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
-                        <span className="text-amber-900">{ingredient}</span>
-                      </li>
-                    ))}
+                    {recipe.ingredients.map((ingredient, index) => {
+                      // Clean up the ingredient string
+                      const cleanIngredient = ingredient
+                        .replace(/^\["/, '')
+                        .replace(/"\]$/, '')
+                        .replace(/","/g, '\n')
+                        .replace(/"/g, '')
+                        .trim();
+
+                      return (
+                        <li key={index} className="flex items-start">
+                          <CheckCircle className="h-5 w-5 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
+                          <span className="text-amber-900 whitespace-pre-line">{cleanIngredient}</span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
 
@@ -141,19 +154,57 @@ export function RecipeModal({ recipe, onClose }: RecipeModalProps) {
                     Instructions
                   </h3>
                   <ol className="space-y-4">
-                    {recipe.instructions.map((step, index) => (
-                      <li key={index} className="flex">
-                        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-medium mr-3 mt-0.5">
-                          {index + 1}
-                        </div>
-                        <p className="text-amber-900">{step}</p>
-                      </li>
-                    ))}
+                    {(() => {
+                      // Flatten all instructions first
+                      const allSteps: string[] = [];
+                      
+                      recipe.instructions.forEach(step => {
+                        try {
+                        
+                          // Check if the step is a JSON string
+                            const trimmedStep = step.trim();
+                          if (trimmedStep.startsWith('[') && trimmedStep.endsWith(']')) {
+                            const parsed = JSON.parse(trimmedStep);
+                            if (Array.isArray(parsed)) {
+                              allSteps.push(...parsed);
+                              return;
+                            }
+                          }
+                          
+                          // If not JSON, try to split by common delimiters
+                          // First, clean up the entire string by removing any JSON array markers
+                          let cleanStep = step.replace(/^\s*\["|\]\s*$/g, '');
+                          
+                          // Then split and clean each part
+                          const parts = cleanStep
+                            .split(/(?<=\d)\s*,\s*"?/)
+                            .map(s => s.replace(/^[\s,"]+|[\s,"]+$/g, '').trim())
+                            .filter(s => s && !/^\d+$/.test(s));  // Filter out empty strings and standalone numbers
+                          
+                          allSteps.push(...parts);
+                        } catch (e) {
+                          console.error('Error parsing step:', step, e);
+                          allSteps.push(step);
+                        }
+                      });
+                      
+                      // Filter out any empty steps and render
+                      return allSteps
+                        .filter(step => step.trim().length > 0)
+                        .map((step, index) => (
+                          <li key={index} className="flex">
+                            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-medium mr-3 mt-0.5">
+                              {index + 1}
+                            </div>
+                            <p className="text-amber-900">{step}</p>
+                          </li>
+                        ));
+                    })()}
                   </ol>
                 </div>
               </div>
 
-              {/* Notes */}
+              {/* Additional recipe content */}
               <div className="mt-8 p-4 bg-amber-50 rounded-lg border border-amber-100">
                 <div className="flex">
                   <AlertCircle className="h-5 w-5 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />

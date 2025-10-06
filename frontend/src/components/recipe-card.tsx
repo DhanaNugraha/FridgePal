@@ -27,8 +27,10 @@ export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
     return 'bg-amber-50 text-amber-800';
   };
 
-  // Extract chef name (remove anything in parentheses)
-  const chefName = recipe.chef.split('(')[0].trim();
+  // Format chef name from "Chef 1 (Marco)" to "Chef 1, Marco"
+  const chefName = recipe.chef
+    .replace(' (', ', ')
+    .replace(')', '');
 
   const handleCardClick = () => {
     console.log('Card clicked, onViewRecipe:', onViewRecipe);
