@@ -241,7 +241,7 @@ export function SearchBar({
       </form>
 
       {ingredientList.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap items-center gap-2 mb-4">
           {ingredientList.map((ingredient, index) => (
             <div key={index} className="flex items-center bg-amber-200 text-amber-900 px-3 py-1 rounded-full text-sm font-medium">
               {ingredient}
@@ -255,6 +255,19 @@ export function SearchBar({
               </button>
             </div>
           ))}
+          {ingredientList.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setIngredientList([]);
+                onSearch([], { variety, perChef });
+              }}
+              className="text-sm text-amber-600 hover:text-amber-800 font-medium ml-2"
+              disabled={isLoading}
+            >
+              Clear All
+            </button>
+          )}
         </div>
       )}
       
