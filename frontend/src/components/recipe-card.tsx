@@ -20,11 +20,13 @@ type RecipeCardProps = {
 export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   
-  // Calculate a color based on the similarity score
+  // Calculate a color based on the similarity score with 0.2 increments
   const getScoreColor = (score: number) => {
     if (score > 0.8) return 'bg-green-100 text-green-800';
-    if (score > 0.6) return 'bg-amber-100 text-amber-800';
-    return 'bg-amber-50 text-amber-800';
+    if (score > 0.6) return 'bg-green-50 text-green-800';
+    if (score > 0.4) return 'bg-amber-100 text-amber-800';
+    if (score > 0.2) return 'bg-amber-50 text-amber-800';
+    return 'bg-red-50 text-red-800';
   };
 
   // Format chef name from "Chef 1 (Marco)" to "Chef 1, Marco"
@@ -42,7 +44,7 @@ export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full cursor-pointer"
+      className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col min-h-[24rem] cursor-pointer p-5"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleCardClick}
@@ -55,41 +57,20 @@ export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
         }
       }}
     >
-      {/* Recipe Image */}
-      <div className="relative h-48 bg-amber-100 overflow-hidden">
-        {recipe.image ? (
-          <Image
-            src={recipe.image}
-            alt={recipe.title}
-            fill
-            className="object-cover transition-transform duration-500 ease-in-out"
-            style={{
-              transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-            }}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-amber-800">
-            <ChefHat className="w-16 h-16 opacity-20" />
-          </div>
-        )}
-        
-        {/* Score Badge */}
-        <div className="absolute top-3 right-3">
-          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreColor(recipe.similarity_score)}`}>
-            {Math.round(recipe.similarity_score * 100)}% Match
-          </span>
-        </div>
-        
-        {/* Chef Badge */}
-        <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-amber-900 flex items-center">
+      {/* Score and Chef Badge */}
+      <div className="flex justify-between items-start mb-4">
+        <div className="bg-amber-100/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-amber-900 flex items-center">
           <span className="w-2 h-2 rounded-full bg-amber-500 mr-2"></span>
           {chefName}
         </div>
+        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreColor(recipe.similarity_score)}`}>
+          {Math.round(recipe.similarity_score * 100)}% Match
+        </span>
       </div>
       
       {/* Recipe Content */}
-      <div className="p-5 flex flex-col flex-grow">
-        <h3 className="text-xl font-semibold text-amber-900 mb-2 line-clamp-2">
+      <div className="flex flex-col h-full">
+        <h3 className="text-xl font-semibold text-amber-900 leading-tight mb-2 break-words">
           {recipe.title}
         </h3>
         
@@ -107,20 +88,36 @@ export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
           )}
         </div>
         
-        <div className="mt-auto">
-          <div className="mb-4">
-            <h4 className="text-sm font-medium text-amber-800 mb-1">
-              Key Ingredients:
-            </h4>
-            <p className="text-sm text-amber-700 line-clamp-2">
-              {recipe.ingredients.length > 4 && '...'}
-            </p>
-          </div>
+        <div className="flex flex-col h-full">
+          <div className="mb-4 flex-1">
+          <h4 className="text-sm font-medium text-amber-800 mb-2">
+            Ingredients ({recipe.ingredients.length}):
+          </h4>
+          <ul className="text-sm text-amber-700 space-y-1 pr-2">
+            {recipe.ingredients.map((ingredient, i) => {
+              // Clean up the ingredient string
+              const cleanIngredient = typeof ingredient === 'string' 
+                ? ingredient
+                    .replace(/^\["/, '')
+                    .replace(/"]$/, '')
+                    .replace(/","/g, ', ')
+                    .replace(/"/g, '')
+                    .trim()
+                : '';
+              return (
+                <li key={i} className="flex items-start">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-300 mt-2 mr-2 flex-shrink-0"></span>
+                  <span className="leading-tight">{cleanIngredient}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
           
           {onViewRecipe && (
             <Button 
               variant="outline" 
-              className="mt-4 w-full border-amber-500 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
+              className="mt-4 w-full border-amber-500 text-amber-700 hover:bg-amber-50 hover:text-amber-800 flex-shrink-0"
               onClick={(e) => {
                 e.stopPropagation(); // Prevent card's onClick from firing
                 onViewRecipe?.();

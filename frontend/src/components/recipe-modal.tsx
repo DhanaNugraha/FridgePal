@@ -178,7 +178,15 @@ export function RecipeModal({ recipe, onClose }: RecipeModalProps) {
                           // Then split and clean each part
                           const parts = cleanStep
                             .split(/(?<=\d)\s*,\s*"?/)
-                            .map(s => s.replace(/^[\s,"]+|[\s,"]+$/g, '').trim())
+                            .map(s => {
+                              // Handle Unicode escape sequences like \u00b0 (degree symbol)
+                              let cleaned = s.replace(/^[\s,"]+|[\s,"]+$/g, '').trim();
+                              // Convert Unicode escape sequences to actual characters
+                              cleaned = cleaned.replace(/\\u([\dA-Fa-f]{4})/g, (_, grp) => 
+                                String.fromCharCode(parseInt(grp, 16))
+                              );
+                              return cleaned;
+                            })
                             .filter(s => s && !/^\d+$/.test(s));  // Filter out empty strings and standalone numbers
                           
                           allSteps.push(...parts);
