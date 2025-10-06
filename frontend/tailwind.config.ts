@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import { fontFamily } from 'tailwindcss/defaultTheme';
 
 const config: Config = {
   content: [
@@ -7,96 +8,45 @@ const config: Config = {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    container: {
+      center: true,
+      padding: '2rem',
+      screens: {
+        '2xl': '1400px',
+      },
+    },
     extend: {
+      // Font families
+      fontFamily: {
+        sans: ['var(--font-sans)', ...fontFamily.sans],
+        heading: ['var(--font-heading)', ...fontFamily.serif],
+      },
       colors: {
-        // Base colors
-        border: 'hsl(var(--border)',
-        input: 'hsl(var(--input)',
-        ring: 'hsl(var(--ring)',
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
-        
-        // Primary color - Warm orange-red
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
-          50: 'hsl(10, 90%, 98%)',
-          100: 'hsl(10, 90%, 95%)',
-          200: 'hsl(10, 90%, 90%)',
-          300: 'hsl(10, 90%, 80%)',
-          400: 'hsl(10, 90%, 70%)',
-          500: 'hsl(10, 90%, 60%)',
-          600: 'hsl(10, 90%, 50%)',
-          700: 'hsl(10, 90%, 40%)',
-          800: 'hsl(10, 90%, 30%)',
-          900: 'hsl(10, 90%, 20%)',
-          950: 'hsl(10, 90%, 10%)',
         },
-        
-        // Secondary color - Warm yellow
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',
-          50: 'hsl(40, 90%, 98%)',
-          100: 'hsl(40, 90%, 95%)',
-          200: 'hsl(40, 90%, 90%)',
-          300: 'hsl(40, 90%, 80%)',
-          400: 'hsl(40, 90%, 70%)',
-          500: 'hsl(40, 90%, 60%)',
-          600: 'hsl(40, 90%, 50%)',
-          700: 'hsl(40, 90%, 40%)',
-          800: 'hsl(40, 90%, 30%)',
-          900: 'hsl(40, 90%, 20%)',
-          950: 'hsl(40, 90%, 10%)',
         },
-        
-        // Accent color - Warm green
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
-          50: 'hsl(80, 60%, 98%)',
-          100: 'hsl(80, 60%, 95%)',
-          200: 'hsl(80, 60%, 90%)',
-          300: 'hsl(80, 60%, 80%)',
-          400: 'hsl(80, 60%, 70%)',
-          500: 'hsl(80, 60%, 60%)',
-          600: 'hsl(80, 60%, 50%)',
-          700: 'hsl(80, 60%, 40%)',
-          800: 'hsl(80, 60%, 30%)',
-          900: 'hsl(80, 60%, 20%)',
-          950: 'hsl(80, 60%, 10%)',
-        },
-        
-        // Destructive color - Warm red
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
-        
-        // Muted colors
         muted: {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',
         },
-        
-        // Card colors
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
         },
-        
-        // Popover colors
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
-      },
-      
-      // Font families
-      fontFamily: {
-        sans: ['var(--font-inter)'],
-        serif: ['var(--font-playfair-display)', 'Georgia', 'serif'],
-        heading: ['var(--font-playfair-display)', 'Georgia', 'serif'],
       },
       
       // Border radius
@@ -131,8 +81,6 @@ const config: Config = {
       }
     },
   },
-  // Dark mode configuration
-  darkMode: ['class'],
   
   // Container configuration
   container: {
