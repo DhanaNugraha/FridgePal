@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, FormEvent } from 'react';
-import { Mic, Search, X } from 'lucide-react';
+import { Mic, Search, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useQueryClient } from '@tanstack/react-query';
@@ -45,6 +45,7 @@ export function SearchBar({
   const [ingredientList, setIngredientList] = useState<string[]>([]);
   const [variety, setVariety] = useState(defaultVariety);
   const [perChef, setPerChef] = useState(defaultPerChef);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     // Initialize speech recognition
@@ -178,62 +179,71 @@ export function SearchBar({
         >
           {isLoading ? 'Searching...' : 'Find Recipes'}
         </Button>
-        <div className="mt-4 space-y-4 p-4 bg-amber-50 rounded-lg">
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label htmlFor="variety" className="text-sm font-medium text-amber-800">
-                Recipe Variety: {variety}
-              </label>
-            </div>
-            <div className="px-2">
-              <input
-                type="range"
-                id="variety"
-                min="1"
-                max="10"
-                value={variety}
-                onChange={(e) => setVariety(parseInt(e.target.value))}
-                className="w-full h-2 bg-amber-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
-              />
-              <div className="flex justify-between text-xs text-amber-600 mt-1">
-                <span>strict</span>
-                <span>Loose</span>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label htmlFor="perChef" className="text-sm font-medium text-amber-800">
-                Recipes per Chef: {perChef}
-              </label>
-            </div>
-            <div className="px-2">
-              <input
-                type="range"
-                id="perChef"
-                min="1"
-                max="10"
-                value={perChef}
-                onChange={(e) => setPerChef(parseInt(e.target.value))}
-                className="w-full h-2 bg-amber-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
-              />
-              <div className="flex justify-between text-xs text-amber-600 mt-1">
-                <span>1</span>
-                <span>10</span>
-              </div>
-            </div>
-          </div>
+        <div className="flex justify-end mt-2">
+          <button
+            type="button"
+            onClick={() => setShowSettings(!showSettings)}
+            className="flex items-center gap-1 text-sm text-amber-600 hover:text-amber-800 transition-colors"
+          >
+            <Settings className="h-4 w-4" />
+            {showSettings ? 'Hide' : 'Show'} Settings
+          </button>
         </div>
+
+        {showSettings && (
+          <div className="mt-2 space-y-4 p-4 bg-amber-50 rounded-lg">
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label htmlFor="variety" className="text-sm font-medium text-amber-800">
+                  Recipe Variety: {variety}
+                </label>
+              </div>
+              <div className="px-2">
+                <input
+                  type="range"
+                  id="variety"
+                  min="1"
+                  max="10"
+                  value={variety}
+                  onChange={(e) => setVariety(parseInt(e.target.value))}
+                  className="w-full h-2 bg-amber-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                />
+                <div className="flex justify-between text-xs text-amber-600 mt-1">
+                  <span>strict</span>
+                  <span>Loose</span>
+              </div>
+            </div>
+            <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label htmlFor="perChef" className="text-sm font-medium text-amber-800">
+                    Recipes per Chef: {perChef}
+                  </label>
+                </div>
+                <div className="px-2">
+                  <input
+                    type="range"
+                    id="perChef"
+                    min="1"
+                    max="10"
+                    value={perChef}
+                    onChange={(e) => setPerChef(parseInt(e.target.value))}
+                    className="w-full h-2 bg-amber-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                  />
+                  <div className="flex justify-between text-xs text-amber-600 mt-1">
+                    <span>1</span>
+                    <span>10</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </form>
 
       {ingredientList.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
           {ingredientList.map((ingredient, index) => (
-            <div 
-              key={index}
-              className="flex items-center bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-medium"
-            >
+            <div key={index} className="flex items-center bg-amber-200 text-amber-900 px-3 py-1 rounded-full text-sm font-medium">
               {ingredient}
               <button 
                 type="button" 
