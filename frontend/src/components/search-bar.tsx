@@ -4,29 +4,6 @@ import { useState, useRef, useEffect, FormEvent } from 'react';
 import { Mic, Search, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useQueryClient } from '@tanstack/react-query';
-import { useRecipes } from '@/hooks/useRecipes';
-
-// Type definitions for Web Speech API
-type SpeechRecognition = any;
-type SpeechRecognitionEvent = {
-  results: {
-    [key: number]: {
-      [key: number]: {
-        transcript: string;
-      };
-      isFinal: boolean;
-    };
-    length: number;
-    item: (index: number) => any;
-  };
-  resultIndex: number;
-};
-
-type SpeechRecognitionErrorEvent = {
-  error: string;
-  message: string;
-};
 
 interface SearchBarProps {
   onSearch: (ingredients: string[], options?: { variety?: number; perChef?: number }) => void;
