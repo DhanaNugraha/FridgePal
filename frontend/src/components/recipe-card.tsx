@@ -20,19 +20,39 @@ type RecipeCardProps = {
 export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   
-  // Calculate a color based on the similarity score with 0.2 increments
+  // Calculate a color based on the similarity score with 0.1 increments
   const getScoreColor = (score: number) => {
-    if (score > 0.8) return 'bg-green-100 text-green-800';
-    if (score > 0.6) return 'bg-green-50 text-green-800';
-    if (score > 0.4) return 'bg-amber-100 text-amber-800';
-    if (score > 0.2) return 'bg-amber-50 text-amber-800';
-    return 'bg-red-50 text-red-800';
+    if (score > 0.9) return 'bg-green-100 text-green-900';
+    if (score > 0.8) return 'bg-green-100 text-green-700';
+    if (score > 0.7) return 'bg-green-50 text-green-600';
+    if (score > 0.6) return 'bg-yellow-100 text-yellow-800';
+    if (score > 0.5) return 'bg-yellow-100 text-yellow-600';
+    if (score > 0.4) return 'bg-yellow-100 text-yellow-400';
+    if (score > 0.3) return 'bg-amber-100 text-amber-700';
+    if (score > 0.2) return 'bg-amber-100 text-amber-600';
+    if (score > 0.1) return 'bg-amber-100 text-amber-500';
+    return 'bg-red-50 text-red-400';
   };
 
   // Format chef name from "Chef 1 (Marco)" to "Chef 1, Marco"
   const chefName = recipe.chef
     .replace(' (', ', ')
     .replace(')', '');
+    
+  // Get a unique color for each chef
+  const getChefColor = (chefName: string) => {
+    // Extract chef number from the name (e.g., "Chef 1" -> 1)
+    const chefNumber = parseInt(chefName.split(' ')[1]) || 1;
+    
+    // Assign a color based on chef number (1-5)
+    switch(chefNumber % 5) {
+      case 1: return 'bg-blue-500';  // Blue
+      case 2: return 'bg-purple-500'; // Purple
+      case 3: return 'bg-pink-500';  // Pink
+      case 4: return 'bg-emerald-500'; // Emerald
+      default: return 'bg-amber-500'; // Amber (fallback)
+    }
+  };
 
   const handleCardClick = () => {
     console.log('Card clicked, onViewRecipe:', onViewRecipe);
@@ -60,7 +80,7 @@ export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
       {/* Score and Chef Badge */}
       <div className="flex justify-between items-start mb-4">
         <div className="bg-amber-100/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-amber-900 flex items-center">
-          <span className="w-2 h-2 rounded-full bg-amber-500 mr-2"></span>
+          <span className={`w-2 h-2 rounded-full ${getChefColor(chefName)} mr-2`}></span>
           {chefName}
         </div>
         <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreColor(recipe.similarity_score)}`}>
