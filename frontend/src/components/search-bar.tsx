@@ -7,23 +7,26 @@ import { Input } from '@/components/ui/input';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRecipes } from '@/hooks/useRecipes';
 
-// Extend Window interface to include webkitSpeechRecognition
-declare global {
-  interface Window {
-    webkitSpeechRecognition: typeof SpeechRecognition;
-  }
-}
+// Type definitions for Web Speech API
+type SpeechRecognition = any;
+type SpeechRecognitionEvent = {
+  results: {
+    [key: number]: {
+      [key: number]: {
+        transcript: string;
+      };
+      isFinal: boolean;
+    };
+    length: number;
+    item: (index: number) => any;
+  };
+  resultIndex: number;
+};
 
-interface SpeechRecognition extends EventTarget {
-  new (): SpeechRecognition;
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start: () => void;
-  stop: () => void;
-  onresult: (event: any) => void;
-  onerror: (event: any) => void;
-}
+type SpeechRecognitionErrorEvent = {
+  error: string;
+  message: string;
+};
 
 interface SearchBarProps {
   onSearch: (ingredients: string[], options?: { variety?: number; perChef?: number }) => void;
@@ -40,52 +43,136 @@ export function SearchBar({
 }: SearchBarProps) {
   const [ingredients, setIngredients] = useState<string>('');
   const [isListening, setIsListening] = useState(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const [isSpeechSupported, setIsSpeechSupported] = useState(true);
+  const recognitionRef = useRef<any>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [ingredientList, setIngredientList] = useState<string[]>([]);
   const [variety, setVariety] = useState(defaultVariety);
   const [perChef, setPerChef] = useState(defaultPerChef);
   const [showSettings, setShowSettings] = useState(false);
 
+  // Initialize speech recognition on component mount
   useEffect(() => {
-    // Initialize speech recognition
-    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
-      const SpeechRecognition = window.webkitSpeechRecognition as unknown as { new (): SpeechRecognition };
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-
-      recognitionRef.current.onresult = (event: any) => {
-        const results = event.results as SpeechRecognitionResultList;
-        const transcript = Array.from(results)
-          .map((result) => result[0])
-          .map((result) => result.transcript)
-          .join('');
-        
-        setIngredients(prev => prev ? `${prev}, ${transcript}` : transcript);
-        setIsListening(false);
-      };
-
-      recognitionRef.current.onerror = (event: any) => {
-        console.error('Speech recognition error', event.error);
-        setIsListening(false);
-      };
+    if (typeof window === 'undefined') {
+      console.warn('Window is not available. Running in SSR mode.');
+      return;
     }
 
+    // Check if browser supports speech recognition
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.warn('Speech recognition is not supported in this browser');
+      setIsSpeechSupported(false);
+      return;
+    }
+
+    try {
+      console.log('Initializing speech recognition...');
+      const recognition = new SpeechRecognition();
+      
+      // Configure recognition
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      // Set up event handlers
+      recognition.onresult = (event: any) => {
+        const result = event.results[event.resultIndex];
+        const transcript = result?.[0]?.transcript.trim() || '';
+        console.log('Speech recognition result:', { transcript, isFinal: result.isFinal });
+        
+        if (transcript) {
+          setIngredients(prev => prev ? `${prev}, ${transcript}` : transcript);
+        }
+        setIsListening(false);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', {
+          error: event.error,
+          message: event.message,
+          time: new Date().toISOString()
+        });
+        setIsListening(false);
+      };
+
+      recognition.onstart = () => {
+        console.log('Speech recognition started');
+        setIsListening(true);
+      };
+
+      recognition.onend = () => {
+        console.log('Speech recognition ended');
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      console.log('Speech recognition initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize speech recognition:', error);
+    }
+
+    // Cleanup function
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          console.log('Cleaning up speech recognition');
+          recognitionRef.current.abort();
+        } catch (error) {
+          console.error('Error during cleanup:', error);
+        }
       }
     };
   }, []);
 
   const toggleListening = () => {
+    console.log('Toggle listening called', {
+      isCurrentlyListening: isListening,
+      isRecognitionAvailable: !!recognitionRef.current,
+      time: new Date().toISOString()
+    });
+    
     if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
+      // Stop listening
+      console.log('Stopping speech recognition...');
+      try {
+        if (recognitionRef.current) {
+          recognitionRef.current.stop();
+          console.log('Stop command sent to speech recognition');
+        } else {
+          console.warn('Cannot stop: recognition not initialized');
+        }
+      } catch (error) {
+        console.error('Error stopping speech recognition:', error);
+      } finally {
+        setIsListening(false);
+      }
     } else {
-      recognitionRef.current?.start();
-      setIsListening(true);
+      // Start listening
+      console.log('Attempting to start speech recognition...');
+      
+      if (!recognitionRef.current) {
+        console.error('Cannot start: speech recognition not initialized');
+        return;
+      }
+      
+      try {
+        console.log('Starting recognition with config:', {
+          continuous: recognitionRef.current.continuous,
+          lang: recognitionRef.current.lang,
+          interimResults: recognitionRef.current.interimResults
+        });
+        
+        // Clear any previous results
+        setIngredients(prev => prev);
+        
+        // Start listening
+        recognitionRef.current.start();
+        console.log('Start command sent to speech recognition');
+      } catch (error) {
+        console.error('Failed to start speech recognition:', error);
+        setIsListening(false);
+      }
     }
   };
 
@@ -136,6 +223,12 @@ export function SearchBar({
 
   return (
     <div className="w-full">
+      {!isSpeechSupported && (
+        <div className="mb-2 text-sm text-amber-700 bg-amber-50 p-2 rounded-md flex items-center">
+          <span className="mr-2">🔊</span>
+          <span>Your browser doesn't support speech recognition. Try Chrome or Edge for voice input.</span>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="relative w-full mb-4">
         <div className="relative flex items-center">
           <Search className="absolute left-3 h-5 w-5 text-amber-500" />
@@ -164,9 +257,10 @@ export function SearchBar({
               type="button"
               variant="ghost"
               size="icon"
-              className={`rounded-full ${isListening ? 'bg-red-100 text-red-500' : 'text-amber-500 hover:bg-amber-100'}`}
+              className={`rounded-full ${isListening ? 'bg-red-100 text-red-500' : 'text-amber-500 hover:bg-amber-100'} ${!isSpeechSupported ? 'opacity-50 cursor-not-allowed' : ''}`}
               onClick={toggleListening}
-              disabled={isLoading}
+              disabled={isLoading || !isSpeechSupported}
+              title={!isSpeechSupported ? 'Speech recognition not supported in this browser. Try Chrome or Edge.' : 'Use voice input'}
             >
               <Mic className="h-5 w-5" />
             </Button>

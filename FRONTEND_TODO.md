@@ -10,6 +10,8 @@
   - [x] Search/Submit button
   - [x] Loading state during API calls
   - [x] Error handling
+  - [x] slider for recipe variety (used for api call)
+  - [x] recipe per chef input (used for api call)
 
 - [x] **Results Page** (integrated into Homepage)
   - [x] Responsive grid of recipe cards
@@ -23,7 +25,7 @@
   - [x] Ingredients list
   - [x] Step-by-step instructions
   - [x] Close button and keyboard navigation
-  - [ ] remove unnecessary symbols from recipe details ex: "[", "]", "(", ")", '"'
+  - [x] remove unnecessary symbols from recipe details ex: "[", "]", "(", ")", '"'
 
 ### Components
 - [x] **RecipeCard**
@@ -31,21 +33,19 @@
   - [x] Title and chef attribution
   - [x] Match score visualization with color coding
   - [x] Hover/focus states with Framer Motion
-  - [ ] improve recipe card hover prominence
+  - [x] improve recipe card hover prominence
 
 - [x] **SearchBar**
   - [x] Tag-like input field
   - [ ] Autocomplete suggestions (Future Enhancement)
-  - [x] Speech-to-text integration
+  - [x] Speech-to-text integration 
   - [x] Input validation
   - [x] Ingredient chips with remove functionality
-  - [ ] clear all tags feature
-  - [ ] make typing new ingredients not clear pre existing tags, instead add.
+  - [x] clear all tags feature
+  - [x] make typing new ingredients not clear pre existing tags, instead add.
 
 - [ ] **Header & Navigation**
   - [ ] App logo/name
-  - [ ] Navigation links
-  - [ ] Responsive menu for mobile
 
 ## 🎨 Styling & Theming
 - [x] Set up Tailwind configuration
