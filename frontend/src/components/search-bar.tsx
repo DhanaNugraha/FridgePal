@@ -28,10 +28,44 @@ export function SearchBar({
   const [perChef, setPerChef] = useState(defaultPerChef);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Initialize speech recognition on component mount
+  // Helper function to process ingredient list from speech
+  const processIngredientList = (text: string): string => {
+    if (!text) return '';
+    
+    // First, handle common patterns that indicate separation
+    let processed = text
+      // Replace common separators with commas
+      .replace(/\s+(and|or|then|plus|with|add|include|also)\s+/gi, ', ')
+      // Handle ampersands and other symbols
+      .replace(/\s*[&,;.-]\s*/g, ', ')
+      // Handle any remaining multiple spaces
+      .trim();
+    
+    // Split into individual ingredients
+    let ingredients = processed
+      .split(',')
+      .map(i => i.trim())
+      .filter(ing => ing.length > 0 && !ing.match(/^\s*and\s*$/i));
+    
+    // Handle special cases like "and" at the end of an ingredient
+    ingredients = ingredients.flatMap(ing => {
+      // If an ingredient contains "and" in the middle, split it
+      const parts = ing.split(/\s+and\s+/i);
+      return parts.map(p => p.trim()).filter(p => p.length > 0);
+    });
+    
+    // Capitalize first letter of each ingredient and join with commas
+    processed = ingredients
+      .map(ing => ing.charAt(0).toUpperCase() + ing.slice(1).toLowerCase())
+      .join(', ');
+    
+    return processed;
+  };
+
+  // Initialize speech recognition on component mount (client-side only)
   useEffect(() => {
+    // Ensure this only runs on the client
     if (typeof window === 'undefined') {
-      console.warn('Window is not available. Running in SSR mode.');
       return;
     }
 
@@ -48,20 +82,63 @@ export function SearchBar({
       const recognition = new SpeechRecognition();
       
       // Configure recognition
-      recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.continuous = true;  // Keep listening until explicitly stopped
+      recognition.interimResults = false;  // Only get final results to avoid duplicates
       recognition.lang = 'en-US';
+      recognition.maxAlternatives = 1;  // Only get the top alternative
+      recognition.pause = false;  // Don't pause after each result
+      recognition.noise = 1.0;    // Be more lenient with speech detection
+      recognition.maxPause = 10000; // 10 seconds of silence before timeout
 
       // Set up event handlers
+      // Track if we've received any speech input
+      let hasReceivedSpeech = false;
+      let silenceTimer: NodeJS.Timeout;
+      
       recognition.onresult = (event: any) => {
         const result = event.results[event.resultIndex];
+        
+        // Only process final results, not interim ones
+        if (!result.isFinal) return;
+        
         const transcript = result?.[0]?.transcript.trim() || '';
-        console.log('Speech recognition result:', { transcript, isFinal: result.isFinal });
+        console.log('Final speech recognition result:', { transcript });
         
         if (transcript) {
-          setIngredients(prev => prev ? `${prev}, ${transcript}` : transcript);
+          hasReceivedSpeech = true;
+          
+          // Reset the silence timer
+          if (silenceTimer) clearTimeout(silenceTimer);
+          
+          // Process the transcript to add commas between ingredients
+          const processedTranscript = processIngredientList(transcript);
+          console.log('Processed transcript:', processedTranscript);
+          
+          setIngredients(prev => {
+            // Only add if this is a new ingredient and not a duplicate
+            const currentIngredients = prev ? prev.split(',').map(i => i.trim().toLowerCase()) : [];
+            const newIngredients = processedTranscript
+              .split(',')
+              .map(i => i.trim())
+              .filter(ing => {
+                const normalized = ing.toLowerCase();
+                return !currentIngredients.includes(normalized);
+              });
+              
+            if (newIngredients.length === 0) return prev;
+            
+            const separator = prev && !prev.endsWith(',') ? ', ' : '';
+            return prev ? `${prev}${separator}${newIngredients.join(', ')}` : newIngredients.join(', ');
+          });
         }
-        setIsListening(false);
+        
+        // Set a timer to detect long pauses
+        silenceTimer = setTimeout(() => {
+          if (hasReceivedSpeech) {
+            console.log('Long pause detected, but keeping microphone active');
+            hasReceivedSpeech = false;
+          }
+        }, 2000); // 2 seconds of silence before considering it a pause
       };
 
       recognition.onerror = (event: any) => {
@@ -103,9 +180,13 @@ export function SearchBar({
   }, []);
 
   const toggleListening = () => {
+    if (!recognitionRef.current) {
+      console.error('Speech recognition not initialized');
+      return;
+    }
+
     console.log('Toggle listening called', {
       isCurrentlyListening: isListening,
-      isRecognitionAvailable: !!recognitionRef.current,
       time: new Date().toISOString()
     });
     
@@ -113,39 +194,60 @@ export function SearchBar({
       // Stop listening
       console.log('Stopping speech recognition...');
       try {
+        // Stop any ongoing recognition
         if (recognitionRef.current) {
+          recognitionRef.current.onend = null; // Prevent onend from triggering our state change
           recognitionRef.current.stop();
           console.log('Stop command sent to speech recognition');
-        } else {
-          console.warn('Cannot stop: recognition not initialized');
         }
+        setIsListening(false);
       } catch (error) {
         console.error('Error stopping speech recognition:', error);
-      } finally {
         setIsListening(false);
       }
     } else {
       // Start listening
-      console.log('Attempting to start speech recognition...');
-      
-      if (!recognitionRef.current) {
-        console.error('Cannot start: speech recognition not initialized');
-        return;
-      }
+      console.log('Starting speech recognition...');
       
       try {
-        console.log('Starting recognition with config:', {
-          continuous: recognitionRef.current.continuous,
-          lang: recognitionRef.current.lang,
-          interimResults: recognitionRef.current.interimResults
-        });
+        // Create a new recognition instance to ensure clean state
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const newRecognition = new SpeechRecognition();
         
-        // Clear any previous results
-        setIngredients(prev => prev);
+        // Configure the new instance
+        newRecognition.continuous = true;
+        newRecognition.interimResults = false;
+        newRecognition.lang = 'en-US';
+        newRecognition.maxAlternatives = 1;
         
-        // Start listening
-        recognitionRef.current.start();
+        // Set up event handlers for the new instance
+        newRecognition.onresult = recognitionRef.current.onresult;
+        newRecognition.onerror = recognitionRef.current.onerror;
+        
+        // Store the new instance
+        recognitionRef.current = newRecognition;
+        
+        console.log('Starting recognition with new instance');
+        
+        // Start listening with the new instance
+        newRecognition.start();
         console.log('Start command sent to speech recognition');
+        setIsListening(true);
+        
+        // Handle unexpected stops
+        newRecognition.onend = () => {
+          console.log('Speech recognition ended unexpectedly');
+          if (isListening) {
+            console.log('Restarting speech recognition...');
+            try {
+              newRecognition.start();
+            } catch (error) {
+              console.error('Failed to restart speech recognition:', error);
+              setIsListening(false);
+            }
+          }
+        };
+        
       } catch (error) {
         console.error('Failed to start speech recognition:', error);
         setIsListening(false);
@@ -216,15 +318,18 @@ export function SearchBar({
             onChange={(e) => setIngredients(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="What's in your fridge? (e.g., chicken, tomatoes, pasta...)"
-            className="pl-10 pr-12 py-6 text-lg border-2 border-amber-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 rounded-full bg-white/80 backdrop-blur-sm"
             disabled={isLoading}
+            className="pr-10 py-6 text-lg border-2 border-amber-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 rounded-full bg-white/80 backdrop-blur-sm h-14 relative z-0"
+            suppressHydrationWarning
           />
-          <div className="absolute right-2 flex space-x-1">
+          <div className="absolute right-2 flex space-x-1 z-10">
             {ingredients && (
               <button
-                type="button"
-                onClick={() => setIngredients('')}
-                className="p-1.5 rounded-full text-amber-500 hover:bg-amber-100 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIngredients('');
+                }}
+                className="p-1.5 rounded-full text-amber-500 hover:bg-amber-100 transition-colors z-20"
                 disabled={isLoading}
               >
                 <X className="h-5 w-5" />
@@ -234,10 +339,14 @@ export function SearchBar({
               type="button"
               variant="ghost"
               size="icon"
-              className={`rounded-full ${isListening ? 'bg-red-100 text-red-500' : 'text-amber-500 hover:bg-amber-100'} ${!isSpeechSupported ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={toggleListening}
+              className={`rounded-full z-20 ${isListening ? 'bg-red-100 text-red-500' : 'text-amber-500 hover:bg-amber-100'} ${!isSpeechSupported ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleListening();
+              }}
               disabled={isLoading || !isSpeechSupported}
               title={!isSpeechSupported ? 'Speech recognition not supported in this browser. Try Chrome or Edge.' : 'Use voice input'}
+              style={{ pointerEvents: (isLoading || !isSpeechSupported) ? 'none' : 'auto' }}
             >
               <Mic className="h-5 w-5" />
             </Button>
