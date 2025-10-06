@@ -62,9 +62,20 @@ export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col min-h-[24rem] cursor-pointer p-5"
+      animate={{ 
+        opacity: 1, 
+        y: 0,
+        scale: isHovered ? 1.02 : 1,
+        boxShadow: isHovered 
+          ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' 
+          : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+      }}
+      transition={{ 
+        duration: 0.2,
+        ease: 'easeInOut',
+        scale: { type: 'spring', stiffness: 400, damping: 10 }
+      }}
+      className="bg-white rounded-xl overflow-hidden flex flex-col min-h-[24rem] cursor-pointer p-5 border border-amber-50 hover:border-amber-100"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleCardClick}

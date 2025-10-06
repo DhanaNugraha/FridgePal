@@ -7,15 +7,29 @@ import { useRecipes } from '@/hooks/useRecipes';
 import { Recipe } from '@/lib/api';
 
 export default function Home() {
-  const [searchParams, setSearchParams] = useState<{ ingredients: string[] }>({ ingredients: [] });
-  const { data: recipes, isLoading, error } = useRecipes({
-    ingredients: searchParams.ingredients,
-    max_results: 10,
-    variety: 0.7
+  const [searchParams, setSearchParams] = useState<{ 
+    ingredients: string[];
+    variety?: number;
+    perChef?: number;
+  }>({ 
+    ingredients: [],
+    variety: 5,  // Default variety from search-bar
+    perChef: 2   // Default recipes per chef from search-bar
   });
 
-  const handleSearch = (ingredients: string[]) => {
-    setSearchParams({ ingredients });
+  const { data: recipes, isLoading, error } = useRecipes({
+    ingredients: searchParams.ingredients,
+    max_results: searchParams.perChef || 2,
+    variety: searchParams.variety ? searchParams.variety / 10 : 0.5 // Convert 1-10 scale to 0.1-1.0
+  });
+
+  const handleSearch = (ingredients: string[], options?: { variety?: number; perChef?: number }) => {
+    setSearchParams(prev => ({
+      ...prev,
+      ingredients,
+      variety: options?.variety !== undefined ? options.variety : prev.variety,
+      perChef: options?.perChef !== undefined ? options.perChef : prev.perChef
+    }));
   };
 
   return (

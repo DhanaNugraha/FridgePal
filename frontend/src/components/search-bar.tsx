@@ -26,16 +26,25 @@ interface SpeechRecognition extends EventTarget {
 }
 
 interface SearchBarProps {
-  onSearch: (ingredients: string[]) => void;
+  onSearch: (ingredients: string[], options?: { variety?: number; perChef?: number }) => void;
   isLoading?: boolean;
+  defaultVariety?: number;
+  defaultPerChef?: number;
 }
 
-export function SearchBar({ onSearch, isLoading = false }: SearchBarProps) {
+export function SearchBar({ 
+  onSearch, 
+  isLoading = false, 
+  defaultVariety = 5, 
+  defaultPerChef = 5 
+}: SearchBarProps) {
   const [ingredients, setIngredients] = useState<string>('');
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [ingredientList, setIngredientList] = useState<string[]>([]);
+  const [variety, setVariety] = useState(defaultVariety);
+  const [perChef, setPerChef] = useState(defaultPerChef);
 
   useEffect(() => {
     // Initialize speech recognition
@@ -82,18 +91,27 @@ export function SearchBar({ onSearch, isLoading = false }: SearchBarProps) {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const newIngredients = ingredients.trim();
-    if (!newIngredients) return;
+    if (!newIngredients && ingredientList.length === 0) return;
 
-    // Split by commas and clean up the ingredients
-    const ingredientsArray = newIngredients
-      .split(',')
-      .map(ing => ing.trim())
-      .filter(ing => ing.length > 0);
-
-    if (ingredientsArray.length > 0) {
-      setIngredientList(ingredientsArray);
-      onSearch(ingredientsArray);
-      setIngredients('');
+    // If there's new input, add it to the list
+    if (newIngredients) {
+      const ingredientsArray = newIngredients
+        .split(',')
+        .map(ing => ing.trim())
+        .filter(ing => ing.length > 0);
+      
+      if (ingredientsArray.length > 0) {
+        const updatedList = [...ingredientList, ...ingredientsArray];
+        setIngredientList(updatedList);
+        onSearch(updatedList, { variety, perChef });
+        setIngredients('');
+        return;
+      }
+    }
+    
+    // If no new ingredients but we have existing ones, just refresh with current settings
+    if (ingredientList.length > 0) {
+      onSearch(ingredientList, { variety, perChef });
     }
   };
 
@@ -109,7 +127,9 @@ export function SearchBar({ onSearch, isLoading = false }: SearchBarProps) {
     newList.splice(index, 1);
     setIngredientList(newList);
     if (newList.length > 0) {
-      onSearch(newList);
+      onSearch(newList, { variety, perChef });
+    } else {
+      onSearch([], { variety, perChef });
     }
   };
 
@@ -158,6 +178,53 @@ export function SearchBar({ onSearch, isLoading = false }: SearchBarProps) {
         >
           {isLoading ? 'Searching...' : 'Find Recipes'}
         </Button>
+        <div className="mt-4 space-y-4 p-4 bg-amber-50 rounded-lg">
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label htmlFor="variety" className="text-sm font-medium text-amber-800">
+                Recipe Variety: {variety}
+              </label>
+            </div>
+            <div className="px-2">
+              <input
+                type="range"
+                id="variety"
+                min="1"
+                max="10"
+                value={variety}
+                onChange={(e) => setVariety(parseInt(e.target.value))}
+                className="w-full h-2 bg-amber-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+              />
+              <div className="flex justify-between text-xs text-amber-600 mt-1">
+                <span>strict</span>
+                <span>Loose</span>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label htmlFor="perChef" className="text-sm font-medium text-amber-800">
+                Recipes per Chef: {perChef}
+              </label>
+            </div>
+            <div className="px-2">
+              <input
+                type="range"
+                id="perChef"
+                min="1"
+                max="10"
+                value={perChef}
+                onChange={(e) => setPerChef(parseInt(e.target.value))}
+                className="w-full h-2 bg-amber-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+              />
+              <div className="flex justify-between text-xs text-amber-600 mt-1">
+                <span>1</span>
+                <span>10</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </form>
 
       {ingredientList.length > 0 && (
