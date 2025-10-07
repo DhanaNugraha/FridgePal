@@ -1,6 +1,10 @@
+import logging
 from typing import List, Union
 from pydantic import field_validator, ConfigDict
 from pydantic_settings import BaseSettings
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
     # API settings
@@ -20,8 +24,11 @@ class Settings(BaseSettings):
             if v.startswith("["):
                 # Handle JSON array string
                 import json
-                return json.loads(v)
-            return [i.strip() for i in v.split(",") if i.strip()]
+                v = json.loads(v)
+            else:
+                v = [i.strip() for i in v.split(",") if i.strip()]
+        # Log the allowed origins for debugging
+        logger.info(f"Allowed CORS origins: {v}")
         return v if isinstance(v, list) else [str(v)]
     
     # Application settings
@@ -36,3 +43,11 @@ class Settings(BaseSettings):
 
 # Create settings instance
 settings = Settings()
+
+# Log initial CORS configuration
+logger.info(f"Initialized {settings.PROJECT_NAME} with CORS settings:")
+logger.info(f"- Allowed Origins: {settings.BACKEND_CORS_ORIGINS}")
+logger.info(f"- Allow Methods: {settings.CORS_ALLOW_METHODS}")
+logger.info(f"- Allow Headers: {settings.CORS_ALLOW_HEADERS}")
+logger.info(f"- Allow Credentials: {settings.CORS_ALLOW_CREDENTIALS}")
+logger.info(f"- Max Age: {settings.CORS_MAX_AGE} seconds")
