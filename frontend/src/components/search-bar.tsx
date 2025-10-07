@@ -392,7 +392,7 @@ export function SearchBar({
       )}
       
       <div className="mt-3 text-sm text-amber-700">
-        <p>Try: "chicken, rice, and vegetables" or "pasta, tomato sauce, cheese"</p>
+        <p>Try: &quot;chicken, rice, and vegetables&quot; or &quot;pasta, tomato sauce, cheese&quot;</p>
       </div>
     </div>
   );
