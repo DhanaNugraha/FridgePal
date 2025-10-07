@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { SearchBar } from '@/components/search-bar';
 import { RecipeGrid } from '@/components/recipe-grid';
 import { useRecipes } from '@/hooks/useRecipes';
-import { Recipe } from '@/lib/api';
 
 export default function Home() {
   const [searchParams, setSearchParams] = useState<{ 
@@ -40,7 +39,7 @@ export default function Home() {
             FridgePal
           </h1>
           <p className="text-xl text-amber-800 mb-8">
-            Discover delicious recipes based on what's in your fridge
+            Discover delicious recipes based on what&apos;s in your fridge
           </p>
           
           <div className="max-w-2xl mx-auto">

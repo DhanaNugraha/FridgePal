@@ -1,9 +1,10 @@
 'use client';
 
-import { X, Clock, ChefHat, CheckCircle, AlertCircle, ChefHat as ChefIcon } from 'lucide-react';
+import { X, Clock, CheckCircle, AlertCircle, ChefHat as ChefIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useCallback, useEffect } from 'react';
+import Image from 'next/image';
 import { Recipe } from '@/lib/api';
 
 interface RecipeModalProps {
@@ -76,10 +77,12 @@ export function RecipeModal({ recipe, onClose }: RecipeModalProps) {
             {/* Recipe Image */}
             <div className="relative h-64 md:h-80 bg-amber-100">
               {recipe.image ? (
-                <img
+                <Image
                   src={recipe.image}
                   alt={recipe.title}
                   className="w-full h-full object-cover"
+                  width={800}
+                  height={400}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-amber-800">
@@ -105,7 +108,7 @@ export function RecipeModal({ recipe, onClose }: RecipeModalProps) {
                   )}
                   
                   <div className="flex items-center bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                    <ChefHat className="h-4 w-4 mr-1" />
+                    <ChefIcon className="h-4 w-4 mr-1" />
                     <span>{chefName}</span>
                   </div>
                   
