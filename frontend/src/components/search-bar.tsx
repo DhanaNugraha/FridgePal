@@ -1,6 +1,25 @@
 'use client';
 
 import { useState, useRef, useEffect, FormEvent } from 'react';
+
+declare global {
+  interface Window {
+    SpeechRecognition: typeof globalThis.SpeechRecognition;
+    webkitSpeechRecognition: typeof globalThis.SpeechRecognition;
+  }
+}
+
+// Extend the global SpeechRecognition interfaces
+interface CustomSpeechRecognition extends Omit<globalThis.SpeechRecognition, 'onresult' | 'onerror' | 'onstart' | 'onend'> {
+  noise?: number;
+  maxPause?: number;
+  pause?: boolean;
+  onresult?: (event: globalThis.SpeechRecognitionEvent) => void;
+  onerror?: (event: globalThis.SpeechRecognitionErrorEvent) => void;
+  onstart?: () => void;
+  onend?: (() => void) | null;
+  new (): CustomSpeechRecognition;
+}
 import { Mic, Search, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +40,7 @@ export function SearchBar({
   const [ingredients, setIngredients] = useState<string>('');
   const [isListening, setIsListening] = useState(false);
   const [isSpeechSupported, setIsSpeechSupported] = useState(true);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<CustomSpeechRecognition | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [ingredientList, setIngredientList] = useState<string[]>([]);
   const [variety, setVariety] = useState(defaultVariety);
@@ -95,7 +114,7 @@ export function SearchBar({
       let hasReceivedSpeech = false;
       let silenceTimer: NodeJS.Timeout;
       
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: globalThis.SpeechRecognitionEvent) => {
         const result = event.results[event.resultIndex];
         
         // Only process final results, not interim ones
@@ -141,7 +160,7 @@ export function SearchBar({
         }, 2000); // 2 seconds of silence before considering it a pause
       };
 
-      recognition.onerror = (event: any) => {
+recognition.onerror = (event: globalThis.SpeechRecognitionErrorEvent) => {
         console.error('Speech recognition error:', {
           error: event.error,
           message: event.message,
@@ -211,7 +230,7 @@ export function SearchBar({
       
       try {
         // Create a new recognition instance to ensure clean state
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const SpeechRecognition = (window.SpeechRecognition || window.webkitSpeechRecognition) as unknown as new () => CustomSpeechRecognition;
         const newRecognition = new SpeechRecognition();
         
         // Configure the new instance
