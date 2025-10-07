@@ -250,7 +250,7 @@ export function SearchBar({
       {!isSpeechSupported && (
         <div className="mb-2 text-sm text-amber-700 bg-amber-50 p-2 rounded-md flex items-center">
           <span className="mr-2">🔊</span>
-          <span>Your browser doesn't support speech recognition. Try Chrome or Edge.</span>
+          <span>Your browser doesn&apos;t support speech recognition. Try Chrome or Edge.</span>
         </div>
       )}
       <form onSubmit={handleSubmit} className="relative w-full mb-4">
