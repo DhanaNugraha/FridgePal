@@ -4,7 +4,14 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.68.0-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-14.0.0-000000.svg?logo=next.js)](https://nextjs.org/)
 
-FridgePal is a smart recipe recommendation system that helps you discover delicious recipes based on the ingredients you already have at home. With a unique multi-chef approach, FridgePal provides diverse and personalized recipe suggestions.
+FridgePal is an intelligent recipe recommendation system powered by machine learning that helps you discover delicious recipes based on the ingredients you already have at home. Our unique multi-chef system features specialized ML models, each trained on different culinary domains, working together to provide diverse and personalized recipe suggestions. Each 'chef' is a machine learning model with expertise in specific cuisines, ensuring you get the most relevant and varied recipe recommendations.
+
+## 🌐 Live Deployment
+
+- **Frontend**: [https://fridge-pal-six.vercel.app/](https://fridge-pal-six.vercel.app/)
+- **Backend API**: [https://fridgepal-8ouy.onrender.com/](https://fridgepal-8ouy.onrender.com/)
+- **API Documentation**: [View API Docs](https://fridgepal-8ouy.onrender.com/docs)
+
 
 ## ✨ Features
 
@@ -23,6 +30,7 @@ FridgePal is a smart recipe recommendation system that helps you discover delici
 - Node.js 16+
 - pip (Python package manager)
 - npm or yarn
+- scikit-learn (Python ML library, installed via pip with other dependencies)
 
 ### Backend Setup
 
