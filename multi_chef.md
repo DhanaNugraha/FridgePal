@@ -1,8 +1,3 @@
-Perfect 👨‍🍳👩‍🍳 — let’s turn your **“multiple chefs” ensemble idea** into a practical design for **FridgePal**.
-We’ll build it step by step:
-
----
-
 ## 🔹 Step 1: Split the dataset into chunks
 
 Let’s say you have a big CSV (`recipes.csv`) with millions of recipes. We’ll split it into smaller files (or subsets in memory).

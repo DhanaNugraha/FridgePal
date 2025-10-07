@@ -44,8 +44,8 @@
   - [x] clear all tags feature
   - [x] make typing new ingredients not clear pre existing tags, instead add.
 
-- [ ] **Header & Navigation**
-  - [ ] App logo/name
+- [x] **Header & Navigation**
+  - [x] App logo/name
 
 ## 🎨 Styling & Theming
 - [x] Set up Tailwind configuration
