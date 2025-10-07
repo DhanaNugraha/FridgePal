@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, FormEvent } from 'react';
-import { Mic, Search, X, Settings } from 'lucide-react';
+import { Mic, Search, X, Settings, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -40,6 +40,26 @@ export function SearchBar({
   const [variety, setVariety] = useState(defaultVariety);
   const [perChef, setPerChef] = useState(defaultPerChef);
   const [showSettings, setShowSettings] = useState(false);
+  const [showSpeechInstructions, setShowSpeechInstructions] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Close modal when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node) && 
+          !(event.target as Element).closest('button[aria-label="Speech instructions"]')) {
+        setShowSpeechInstructions(false);
+      }
+    };
+
+    if (showSpeechInstructions) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSpeechInstructions]);
 
   const processIngredientList = (text: string): string => {
     if (!text) return '';
@@ -299,14 +319,37 @@ export function SearchBar({
         >
           {isLoading ? 'Searching...' : 'Find Recipes'}
         </Button>
-        <div className="flex justify-end mt-2">
+        <div className="flex justify-end mt-2 space-x-4">
+          <button
+            type="button"
+            onClick={() => setShowSpeechInstructions(!showSpeechInstructions)}
+            className="flex items-center gap-1 text-sm text-amber-600 hover:text-amber-800 transition-colors group relative"
+            aria-label="Speech instructions"
+          >
+            <Info className="h-4 w-4" />
+            <span className="hidden sm:inline">Speech Help</span>
+            {showSpeechInstructions && (
+              <div 
+                ref={modalRef}
+                className="absolute bottom-full right-0 mb-2 w-64 p-3 bg-white border border-amber-200 rounded-lg shadow-lg z-50 text-left"
+              >
+                <h4 className="font-bold text-amber-900 mb-2">How to use voice input:</h4>
+                <ol className="list-decimal pl-4 space-y-1 text-sm text-amber-800 [&>li]:pl-1">
+                  <li>Click the mic button</li>
+                  <li>Say each ingredient with a pause at the end to register it</li>
+                  <li>Or say "and" between ingredients when you don't pause</li>
+                </ol>
+                <div className="absolute bottom-0 right-3 translate-y-1/2 w-3 h-3 transform rotate-45 bg-white border-r border-b border-amber-200"></div>
+              </div>
+            )}
+          </button>
           <button
             type="button"
             onClick={() => setShowSettings(!showSettings)}
             className="flex items-center gap-1 text-sm text-amber-600 hover:text-amber-800 transition-colors"
           >
             <Settings className="h-4 w-4" />
-            {showSettings ? 'Hide' : 'Show'} Settings
+            <span className="hidden sm:inline">{showSettings ? 'Hide' : 'Show'} Settings</span>
           </button>
         </div>
 
