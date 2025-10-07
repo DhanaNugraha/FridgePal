@@ -324,7 +324,7 @@ recognition.onerror = (event: globalThis.SpeechRecognitionErrorEvent) => {
       {!isSpeechSupported && (
         <div className="mb-2 text-sm text-amber-700 bg-amber-50 p-2 rounded-md flex items-center">
           <span className="mr-2">🔊</span>
-          <span>Your browser doesn't support speech recognition. Try Chrome or Edge for voice input.</span>
+          <span>Your browser doesn&apos;t support speech recognition. Try Chrome or Edge for voice input.</span>
         </div>
       )}
       <form onSubmit={handleSubmit} className="relative w-full mb-4">
@@ -471,7 +471,7 @@ recognition.onerror = (event: globalThis.SpeechRecognitionErrorEvent) => {
       )}
       
       <div className="mt-3 text-sm text-amber-700">
-        <p>Try: "chicken, rice, and vegetables" or "pasta, tomato sauce, cheese"</p>
+        <p>Try: &quot;chicken, rice, and vegetables&quot; or &quot;pasta, tomato sauce, cheese&quot;</p>
       </div>
     </div>
   );
