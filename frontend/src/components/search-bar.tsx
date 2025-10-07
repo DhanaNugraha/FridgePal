@@ -264,7 +264,7 @@ export function SearchBar({
             onKeyDown={handleKeyDown}
             placeholder="What's in your fridge? (e.g., chicken, tomatoes, pasta...)"
             disabled={isLoading}
-            className="pr-10 py-6 text-lg border-2 border-amber-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 rounded-full bg-white/80 backdrop-blur-sm h-14 relative z-0"
+            className="pl-10 pr-4 py-6 text-lg border-2 border-amber-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 rounded-full bg-white/80 backdrop-blur-sm h-14 relative z-0 [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none [&::-webkit-search-results-button]:appearance-none [&::-webkit-search-results-decoration]:appearance-none"
           />
           <div className="absolute right-2 flex space-x-1 z-10">
             {ingredients && (
@@ -313,54 +313,87 @@ export function SearchBar({
         {showSettings && (
           <div className="mt-2 space-y-4 p-4 bg-amber-50 rounded-lg">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Recipe Variety: {variety}
-              </label>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={variety}
-                onChange={(e) => setVariety(Number(e.target.value))}
-                className="w-full"
-              />
+              <div className="flex justify-between items-center mb-2">
+                <label htmlFor="variety" className="text-sm font-medium text-amber-800">
+                  Recipe Variety: {variety}
+                </label>
+              </div>
+              <div className="px-2">
+                <input
+                  type="range"
+                  id="variety"
+                  min="1"
+                  max="10"
+                  value={variety}
+                  onChange={(e) => setVariety(parseInt(e.target.value))}
+                  className="w-full h-2 bg-amber-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                />
+                <div className="flex justify-between text-xs text-amber-600 mt-1">
+                  <span>strict</span>
+                  <span>Loose</span>
+                </div>
+              </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Recipes per Chef: {perChef}
-              </label>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={perChef}
-                onChange={(e) => setPerChef(Number(e.target.value))}
-                className="w-full"
-              />
+              <div className="flex justify-between items-center mb-2">
+                <label htmlFor="perChef" className="text-sm font-medium text-amber-800">
+                  Recipes per Chef: {perChef}
+                </label>
+              </div>
+              <div className="px-2">
+                <input
+                  type="range"
+                  id="perChef"
+                  min="1"
+                  max="10"
+                  value={perChef}
+                  onChange={(e) => setPerChef(parseInt(e.target.value))}
+                  className="w-full h-2 bg-amber-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                />
+                <div className="flex justify-between text-xs text-amber-600 mt-1">
+                  <span>1</span>
+                  <span>10</span>
+                </div>
+              </div>
             </div>
           </div>
         )}
       </form>
       
       {ingredientList.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-2">
+        <div className="flex flex-wrap items-center gap-2 mb-4">
           {ingredientList.map((ingredient, index) => (
-            <div
-              key={index}
-              className="flex items-center bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm"
-            >
+            <div key={index} className="flex items-center bg-amber-200 text-amber-900 px-3 py-1 rounded-full text-sm font-medium">
               {ingredient}
-              <button
-                type="button"
+              <button 
+                type="button" 
                 onClick={() => removeIngredient(index)}
-                className="ml-2 text-amber-500 hover:text-amber-700"
+                className="ml-2 text-amber-500 hover:text-amber-700 focus:outline-none"
+                disabled={isLoading}
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
               </button>
             </div>
           ))}
+          {ingredientList.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setIngredientList([]);
+                onSearch([], { variety, perChef });
+              }}
+              className="text-sm text-amber-600 hover:text-amber-800 font-medium ml-2"
+              disabled={isLoading}
+            >
+              Clear All
+            </button>
+          )}
         </div>
       )}
+      
+      <div className="mt-3 text-sm text-amber-700">
+        <p>Try: "chicken, rice, and vegetables" or "pasta, tomato sauce, cheese"</p>
+      </div>
     </div>
   );
 }
