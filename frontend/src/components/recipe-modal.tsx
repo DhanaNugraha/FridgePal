@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import { Recipe } from '@/lib/api';
+import { processRecipeText } from '@/lib/string-utils';
 
 interface RecipeModalProps {
   recipe: (Recipe & {
@@ -131,24 +132,29 @@ export function RecipeModal({ recipe, onClose }: RecipeModalProps) {
                   </h3>
                   <ul className="space-y-2">
                     {recipe.ingredients.map((ingredient, index) => {
-                      // Clean up the ingredient string
-                      const cleanIngredient = ingredient
+                      // Clean up and escape the ingredient string
+                      let cleanIngredient = ingredient
                         .replace(/^\["/, '')
-                        .replace(/"\]$/, '')
+                        .replace(/"]$/, '')
                         .replace(/","/g, '\n')
                         .replace(/"/g, '')
                         .trim();
+                      
+                      // Process the ingredient text to escape special characters
+                      cleanIngredient = processRecipeText(cleanIngredient);
 
                       return (
                         <li key={index} className="flex items-start">
                           <CheckCircle className="h-5 w-5 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
-                          <span className="text-amber-900 whitespace-pre-line">{cleanIngredient}</span>
+                          <span 
+                            className="text-amber-900 whitespace-pre-line"
+                            dangerouslySetInnerHTML={{ __html: cleanIngredient }}
+                          />
                         </li>
                       );
                     })}
                   </ul>
                 </div>
-
                 {/* Instructions */}
                 <div>
                   <h3 className="text-xl font-semibold text-amber-900 mb-4 pb-2 border-b border-amber-100">
@@ -174,7 +180,7 @@ export function RecipeModal({ recipe, onClose }: RecipeModalProps) {
                           
                           // If not JSON, try to split by common delimiters
                           // First, clean up the entire string by removing any JSON array markers
-                          let cleanStep = step.replace(/^\s*\["|\]\s*$/g, '');
+                          const cleanStep = step.replace(/^\s*\["|\]\s*$/g, '');
                           
                           // Then split and clean each part
                           const parts = cleanStep
@@ -205,7 +211,12 @@ export function RecipeModal({ recipe, onClose }: RecipeModalProps) {
                             <div className="flex-shrink-0 h-8 w-8 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-medium mr-3 mt-0.5">
                               {index + 1}
                             </div>
-                            <p className="text-amber-900">{step}</p>
+                            <p 
+                              className="text-amber-900"
+                              dangerouslySetInnerHTML={{ 
+                                __html: processRecipeText(step)
+                              }} 
+                            />
                           </li>
                         ));
                     })()}
@@ -218,10 +229,10 @@ export function RecipeModal({ recipe, onClose }: RecipeModalProps) {
                 <div className="flex">
                   <AlertCircle className="h-5 w-5 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="font-medium text-amber-900">Chef's Tip</h4>
+                    <h4 className="font-medium text-amber-900">Chef&apos;s Tip</h4>
                     <p className="text-amber-800 text-sm mt-1">
                       For best results, use fresh ingredients and adjust seasoning to taste. 
-                      Don't be afraid to make it your own!
+                      Don&apos;t be afraid to make it your own!
                     </p>
                   </div>
                 </div>

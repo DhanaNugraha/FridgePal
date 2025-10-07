@@ -1,11 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Clock, ChefHat, Info } from 'lucide-react';
+import { Clock, Info } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 import { Recipe } from '@/lib/api';
+import { processRecipeText } from '@/lib/string-utils';
 
 type RecipeCardProps = {
   recipe: Recipe & {
@@ -117,32 +118,38 @@ export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
             </span>
           )}
         </div>
-        
         <div className="flex flex-col h-full">
           <div className="mb-4 flex-1">
-          <h4 className="text-sm font-medium text-amber-800 mb-2">
-            Ingredients ({recipe.ingredients.length}):
-          </h4>
-          <ul className="text-sm text-amber-700 space-y-1 pr-2">
-            {recipe.ingredients.map((ingredient, i) => {
-              // Clean up the ingredient string
-              const cleanIngredient = typeof ingredient === 'string' 
-                ? ingredient
-                    .replace(/^\["/, '')
-                    .replace(/"]$/, '')
-                    .replace(/","/g, ', ')
-                    .replace(/"/g, '')
-                    .trim()
-                : '';
-              return (
-                <li key={i} className="flex items-start">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-300 mt-2 mr-2 flex-shrink-0"></span>
-                  <span className="leading-tight">{cleanIngredient}</span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+            <h4 className="text-sm font-medium text-amber-800 mb-2">
+              Ingredients ({recipe.ingredients.length}):
+            </h4>
+            <ul className="text-sm text-amber-700 space-y-1 pr-2">
+              {recipe.ingredients.map((ingredient, i) => {
+                // Clean up the ingredient string
+                let cleanIngredient = typeof ingredient === 'string' 
+                  ? ingredient
+                      .replace(/^\["/, '')
+                      .replace(/"]$/, '')
+                      .replace(/","/g, '\n')
+                      .replace(/"/g, '')
+                      .trim()
+                  : '';
+                
+                // Process the ingredient text to escape special characters
+                cleanIngredient = processRecipeText(cleanIngredient);
+
+                return (
+                  <li key={i} className="flex items-start">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-300 mt-2 mr-2 flex-shrink-0"></span>
+                    <span 
+                      className="leading-tight"
+                      dangerouslySetInnerHTML={{ __html: cleanIngredient }}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
           
           {onViewRecipe && (
             <Button 

@@ -33,7 +33,7 @@ export function SearchBar({
     if (!text) return '';
     
     // First, handle common patterns that indicate separation
-    let processed = text
+    const processed = text
       // Replace common separators with commas
       .replace(/\s+(and|or|then|plus|with|add|include|also)\s+/gi, ', ')
       // Handle ampersands and other symbols
@@ -55,11 +55,11 @@ export function SearchBar({
     });
     
     // Capitalize first letter of each ingredient and join with commas
-    processed = ingredients
+    const result = ingredients
       .map(ing => ing.charAt(0).toUpperCase() + ing.slice(1).toLowerCase())
       .join(', ');
     
-    return processed;
+    return result;
   };
 
   // Initialize speech recognition on component mount (client-side only)
