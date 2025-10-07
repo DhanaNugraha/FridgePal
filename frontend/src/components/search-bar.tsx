@@ -337,7 +337,7 @@ export function SearchBar({
                 <ol className="list-decimal pl-4 space-y-1 text-sm text-amber-800 [&>li]:pl-1">
                   <li>Click the mic button</li>
                   <li>Say each ingredient with a pause at the end to register it</li>
-                  <li>Or say "and" between ingredients when you don't pause</li>
+                  <li>Or say &quot;and&quot; between ingredients when you don&apos;t pause</li>
                 </ol>
                 <div className="absolute bottom-0 right-3 translate-y-1/2 w-3 h-3 transform rotate-45 bg-white border-r border-b border-amber-200"></div>
               </div>
