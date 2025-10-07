@@ -43,7 +43,7 @@ let currentInterval: number = 5000; // Default to 5 seconds
 export const checkHealth = async (): Promise<{ status: string; timestamp: string; service: string }> => {
   console.log('Checking health at:', new Date().toISOString());
   try {
-    const url = '/api/v1/recipes/health';
+    const url = `${API_V1_URL}/health`;
     console.log('Making health check request to:', url);
     const response = await apiClient.get(url, {
       timeout: 5000, // Shorter timeout for health check
